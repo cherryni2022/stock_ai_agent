@@ -1,0 +1,2984 @@
+{
+  "repo_info": {
+    "name": "yfinance",
+    "full_name": "ranaroussi/yfinance",
+    "description": "Download market data from Yahoo! Finance's API",
+    "url": "https://github.com/ranaroussi/yfinance",
+    "homepage": "https://ranaroussi.github.io/yfinance",
+    "stars": 21446,
+    "forks": 3065,
+    "open_issues": 152,
+    "default_branch": "main",
+    "created_at": "2017-05-21T10:16:15+00:00",
+    "updated_at": "2026-02-10T06:27:14+00:00",
+    "language": "Python",
+    "license": "Apache License 2.0",
+    "topics": [
+      "python",
+      "pandas",
+      "yahoo-finance-api",
+      "yahoo-finance",
+      "stock-data",
+      "market-data",
+      "financial-data",
+      "fix-yahoo-finance"
+    ]
+  },
+  "readme": "<img src=\"./doc/yfinance-gh-logo-dark.webp#gh-dark-mode-only\" height=\"100\">\n<img src=\"./doc/yfinance-gh-logo-light.webp#gh-light-mode-only\" height=\"100\">\n\n# Download market data from Yahoo! Finance's API\n\n<a target=\"new\" href=\"https://pypi.python.org/pypi/yfinance\"><img border=0 src=\"https://img.shields.io/badge/python-2.7,%203.6+-blue.svg?style=flat\" alt=\"Python version\"></a>\n<a target=\"new\" href=\"https://pypi.python.org/pypi/yfinance\"><img border=0 src=\"https://img.shields.io/pypi/v/yfinance.svg?maxAge=60%\" alt=\"PyPi version\"></a>\n<a target=\"new\" href=\"https://pypi.python.org/pypi/yfinance\"><img border=0 src=\"https://img.shields.io/pypi/status/yfinance.svg?maxAge=60\" alt=\"PyPi status\"></a>\n<a target=\"new\" href=\"https://pypi.python.org/pypi/yfinance\"><img border=0 src=\"https://img.shields.io/pypi/dm/yfinance.svg?maxAge=86400&label=installs&color=%2327B1FF\" alt=\"PyPi downloads\"></a>\n<a target=\"new\" href=\"https://github.com/ranaroussi/yfinance\"><img border=0 src=\"https://img.shields.io/github/stars/ranaroussi/yfinance.svg?style=social&label=Star&maxAge=60\" alt=\"Star this repo\"></a>\n<a target=\"new\" href=\"https://x.com/intent/follow?screen_name=aroussi\"><img border=0 src=\"https://img.shields.io/twitter/follow/aroussi.svg?style=social&label=Follow&maxAge=60\" alt=\"Follow me on twitter\"></a>\n\n<a href=\"https://trendshift.io/repositories/4578\" target=\"_blank\"><img src=\"https://trendshift.io/api/badge/repositories/4578\" alt=\"ranaroussi%2Fyfinance | Trendshift\" style=\"width: 250px; height: 55px;\" width=\"250\" height=\"55\"/></a>\n\n**yfinance** offers a Pythonic way to fetch financial & market data from [Yahoo!Ⓡ finance](https://finance.yahoo.com).\n\n---\n\n> [!IMPORTANT]  \n> **Yahoo!, Y!Finance, and Yahoo! finance are registered trademarks of Yahoo, Inc.**\n>\n> yfinance is **not** affiliated, endorsed, or vetted by Yahoo, Inc. It's an open-source tool that uses Yahoo's publicly available APIs, and is intended for research and educational purposes.\n> \n> **You should refer to Yahoo!'s terms of use** ([here](https://policies.yahoo.com/us/en/yahoo/terms/product-atos/apiforydn/index.htm), [here](https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html), and [here](https://policies.yahoo.com/us/en/yahoo/terms/index.htm)) **for details on your rights to use the actual data downloaded.\n>\n> Remember - the Yahoo! finance API is intended for personal use only.**\n\n---\n\n> [!TIP]\n> THE NEW DOCUMENTATION WEBSITE IS NOW LIVE! 🤘\n> \n> Visit [**ranaroussi.github.io/yfinance**](https://ranaroussi.github.io/yfinance)\n\n---\n\n## Main components\n\n- `Ticker`: single ticker data\n- `Tickers`: multiple tickers' data\n- `download`: download market data for multiple tickers\n- `Market`: get information about a market\n- `WebSocket` and `AsyncWebSocket`: live streaming data\n- `Search`: quotes and news from search\n- `Sector` and `Industry`: sector and industry information\n- `EquityQuery` and `Screener`: build query to screen market\n\n## Installation\n\nInstall `yfinance` from PYPI using `pip`:\n\n``` {.sourceCode .bash}\n$ pip install yfinance\n```\n\n### [yfinance relies on the community to investigate bugs and contribute code. Here's how you can help.](https://github.com/ranaroussi/yfinance/blob/main/CONTRIBUTING.md)\n\n---\n\n![Star History Chart](https://api.star-history.com/svg?repos=ranaroussi/yfinance)\n\n---\n\n### Legal Stuff\n\n**yfinance** is distributed under the **Apache Software License**. See\nthe [LICENSE.txt](https://github.com/ranaroussi/yfinance/blob/main/LICENSE.txt) file in the release for details.\n\nAGAIN - yfinance is **not** affiliated, endorsed, or vetted by Yahoo, Inc. It's\nan open-source tool that uses Yahoo's publicly available APIs, and is\nintended for research and educational purposes. You should refer to Yahoo!'s terms of use\n([here](https://policies.yahoo.com/us/en/yahoo/terms/product-atos/apiforydn/index.htm),\n[here](https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html), and\n[here](https://policies.yahoo.com/us/en/yahoo/terms/index.htm)) for\ndetails on your rights to use the actual data downloaded.\n\n---\n\n### P.S.\n\nPlease drop me a note with any feedback you have.\n\n**Ran Aroussi**\n\n",
+  "file_tree": [
+    {
+      "path": ".github",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": ".gitignore",
+      "type": "file",
+      "size": 293
+    },
+    {
+      "path": ".travis.yml",
+      "type": "file",
+      "size": 750
+    },
+    {
+      "path": "CHANGELOG.rst",
+      "type": "file",
+      "size": 20856
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "type": "file",
+      "size": 560
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "type": "file",
+      "size": 2005
+    },
+    {
+      "path": "LICENSE.txt",
+      "type": "file",
+      "size": 11358
+    },
+    {
+      "path": "MANIFEST.in",
+      "type": "file",
+      "size": 97
+    },
+    {
+      "path": "README.md",
+      "type": "file",
+      "size": 4127
+    },
+    {
+      "path": "doc",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "meta.yaml",
+      "type": "file",
+      "size": 1568
+    },
+    {
+      "path": "pyrightconfig.json",
+      "type": "file",
+      "size": 510
+    },
+    {
+      "path": "requirements.txt",
+      "type": "file",
+      "size": 322
+    },
+    {
+      "path": "setup.cfg",
+      "type": "file",
+      "size": 252
+    },
+    {
+      "path": "setup.py",
+      "type": "file",
+      "size": 3133
+    },
+    {
+      "path": "tests",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "yfinance",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": ".github/FUNDING.yml",
+      "type": "file",
+      "size": 794
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "type": "file",
+      "size": 217
+    },
+    {
+      "path": ".github/workflows",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/Makefile",
+      "type": "file",
+      "size": 638
+    },
+    {
+      "path": "doc/make.bat",
+      "type": "file",
+      "size": 804
+    },
+    {
+      "path": "doc/source",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/yfinance-gh-icon-dark.webp",
+      "type": "file",
+      "size": 1252
+    },
+    {
+      "path": "doc/yfinance-gh-icon-light.webp",
+      "type": "file",
+      "size": 1292
+    },
+    {
+      "path": "doc/yfinance-gh-logo-dark.webp",
+      "type": "file",
+      "size": 5904
+    },
+    {
+      "path": "doc/yfinance-gh-logo-light.webp",
+      "type": "file",
+      "size": 6332
+    },
+    {
+      "path": "tests/__init__.py",
+      "type": "file",
+      "size": 0
+    },
+    {
+      "path": "tests/context.py",
+      "type": "file",
+      "size": 1738
+    },
+    {
+      "path": "tests/data",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "tests/test_cache.py",
+      "type": "file",
+      "size": 1241
+    },
+    {
+      "path": "tests/test_cache_noperms.py",
+      "type": "file",
+      "size": 1502
+    },
+    {
+      "path": "tests/test_calendars.py",
+      "type": "file",
+      "size": 2011
+    },
+    {
+      "path": "tests/test_live.py",
+      "type": "file",
+      "size": 1439
+    },
+    {
+      "path": "tests/test_lookup.py",
+      "type": "file",
+      "size": 1946
+    },
+    {
+      "path": "tests/test_price_repair.py",
+      "type": "file",
+      "size": 33475
+    },
+    {
+      "path": "tests/test_prices.py",
+      "type": "file",
+      "size": 21593
+    },
+    {
+      "path": "tests/test_screener.py",
+      "type": "file",
+      "size": 1279
+    },
+    {
+      "path": "tests/test_search.py",
+      "type": "file",
+      "size": 1336
+    },
+    {
+      "path": "tests/test_ticker.py",
+      "type": "file",
+      "size": 51618
+    },
+    {
+      "path": "tests/test_utils.py",
+      "type": "file",
+      "size": 8459
+    },
+    {
+      "path": "yfinance/__init__.py",
+      "type": "file",
+      "size": 2218
+    },
+    {
+      "path": "yfinance/base.py",
+      "type": "file",
+      "size": 28805
+    },
+    {
+      "path": "yfinance/cache.py",
+      "type": "file",
+      "size": 17765
+    },
+    {
+      "path": "yfinance/calendars.py",
+      "type": "file",
+      "size": 19932
+    },
+    {
+      "path": "yfinance/config.py",
+      "type": "file",
+      "size": 1388
+    },
+    {
+      "path": "yfinance/const.py",
+      "type": "file",
+      "size": 36029
+    },
+    {
+      "path": "yfinance/data.py",
+      "type": "file",
+      "size": 20785
+    },
+    {
+      "path": "yfinance/domain",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "yfinance/exceptions.py",
+      "type": "file",
+      "size": 1733
+    },
+    {
+      "path": "yfinance/live.py",
+      "type": "file",
+      "size": 12696
+    },
+    {
+      "path": "yfinance/lookup.py",
+      "type": "file",
+      "size": 7037
+    },
+    {
+      "path": "yfinance/multi.py",
+      "type": "file",
+      "size": 11008
+    },
+    {
+      "path": "yfinance/pricing.proto",
+      "type": "file",
+      "size": 939
+    },
+    {
+      "path": "yfinance/pricing_pb2.py",
+      "type": "file",
+      "size": 2499
+    },
+    {
+      "path": "yfinance/scrapers",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "yfinance/screener",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "yfinance/search.py",
+      "type": "file",
+      "size": 5942
+    },
+    {
+      "path": "yfinance/shared.py",
+      "type": "file",
+      "size": 783
+    },
+    {
+      "path": "yfinance/ticker.py",
+      "type": "file",
+      "size": 9203
+    },
+    {
+      "path": "yfinance/tickers.py",
+      "type": "file",
+      "size": 3485
+    },
+    {
+      "path": "yfinance/utils.py",
+      "type": "file",
+      "size": 45591
+    },
+    {
+      "path": "yfinance/version.py",
+      "type": "file",
+      "size": 18
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yaml",
+      "type": "file",
+      "size": 2988
+    },
+    {
+      "path": ".github/workflows/auto_close_default_issues.yml",
+      "type": "file",
+      "size": 1678
+    },
+    {
+      "path": ".github/workflows/deploy_doc.yml",
+      "type": "file",
+      "size": 1053
+    },
+    {
+      "path": ".github/workflows/pyright.yml",
+      "type": "file",
+      "size": 446
+    },
+    {
+      "path": ".github/workflows/pytest.yml.disabled",
+      "type": "file",
+      "size": 734
+    },
+    {
+      "path": ".github/workflows/python-publish.yml",
+      "type": "file",
+      "size": 864
+    },
+    {
+      "path": ".github/workflows/ruff.yml",
+      "type": "file",
+      "size": 296
+    },
+    {
+      "path": "doc/source/_static",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/source/_templates",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/source/advanced",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/source/conf.py",
+      "type": "file",
+      "size": 1662
+    },
+    {
+      "path": "doc/source/development",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/source/index.rst",
+      "type": "file",
+      "size": 1802
+    },
+    {
+      "path": "doc/source/reference",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "tests/data/1398-HK-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 90540
+    },
+    {
+      "path": "tests/data/1398-HK-1d-bad-div.csv",
+      "type": "file",
+      "size": 87091
+    },
+    {
+      "path": "tests/data/3988-HK-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 91206
+    },
+    {
+      "path": "tests/data/3988-HK-1d-bad-div.csv",
+      "type": "file",
+      "size": 87857
+    },
+    {
+      "path": "tests/data/4063-T-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 60659
+    },
+    {
+      "path": "tests/data/4063-T-1d-bad-div.csv",
+      "type": "file",
+      "size": 56649
+    },
+    {
+      "path": "tests/data/4063-T-1d-bad-stock-split-fixed.csv",
+      "type": "file",
+      "size": 1536
+    },
+    {
+      "path": "tests/data/4063-T-1d-bad-stock-split.csv",
+      "type": "file",
+      "size": 1580
+    },
+    {
+      "path": "tests/data/8TRA-DE-1d-missing-div-adjust-fixed.csv",
+      "type": "file",
+      "size": 634
+    },
+    {
+      "path": "tests/data/8TRA-DE-1d-missing-div-adjust.csv",
+      "type": "file",
+      "size": 693
+    },
+    {
+      "path": "tests/data/ABDP-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 63680
+    },
+    {
+      "path": "tests/data/ABDP-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 59661
+    },
+    {
+      "path": "tests/data/ADIG-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 82504
+    },
+    {
+      "path": "tests/data/ADIG-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 78806
+    },
+    {
+      "path": "tests/data/AET-L-1d-100x-error-fixed.csv",
+      "type": "file",
+      "size": 2761
+    },
+    {
+      "path": "tests/data/AET-L-1d-100x-error.csv",
+      "type": "file",
+      "size": 3153
+    },
+    {
+      "path": "tests/data/ALPHA-PA-1d-bad-stock-split-fixed.csv",
+      "type": "file",
+      "size": 2586
+    },
+    {
+      "path": "tests/data/ALPHA-PA-1d-bad-stock-split.csv",
+      "type": "file",
+      "size": 3023
+    },
+    {
+      "path": "tests/data/AV-L-1wk-bad-stock-split-fixed.csv",
+      "type": "file",
+      "size": 9647
+    },
+    {
+      "path": "tests/data/AV-L-1wk-bad-stock-split.csv",
+      "type": "file",
+      "size": 10473
+    },
+    {
+      "path": "tests/data/CALM-1d-no-bad-divs.csv",
+      "type": "file",
+      "size": 85588
+    },
+    {
+      "path": "tests/data/CLC-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 87168
+    },
+    {
+      "path": "tests/data/CLC-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 83561
+    },
+    {
+      "path": "tests/data/CNE-L-1d-bad-stock-split-fixed.csv",
+      "type": "file",
+      "size": 1066
+    },
+    {
+      "path": "tests/data/CNE-L-1d-bad-stock-split.csv",
+      "type": "file",
+      "size": 1282
+    },
+    {
+      "path": "tests/data/DEX-AX-1d-bad-stock-split-fixed.csv",
+      "type": "file",
+      "size": 2876
+    },
+    {
+      "path": "tests/data/DEX-AX-1d-bad-stock-split.csv",
+      "type": "file",
+      "size": 2951
+    },
+    {
+      "path": "tests/data/DODFX-1d-cg-double-count-fixed.csv",
+      "type": "file",
+      "size": 59040
+    },
+    {
+      "path": "tests/data/DODFX-1d-cg-double-count.csv",
+      "type": "file",
+      "size": 59033
+    },
+    {
+      "path": "tests/data/ELCO-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 70833
+    },
+    {
+      "path": "tests/data/ELCO-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 66813
+    },
+    {
+      "path": "tests/data/EWG-1d-no-bad-divs.csv",
+      "type": "file",
+      "size": 90981
+    },
+    {
+      "path": "tests/data/HSBK-IL-1d-no-bad-divs.csv",
+      "type": "file",
+      "size": 83616
+    },
+    {
+      "path": "tests/data/IBE-MC-1d-no-bad-divs.csv",
+      "type": "file",
+      "size": 90204
+    },
+    {
+      "path": "tests/data/JENYX-1d-cg-double-count-fixed.csv",
+      "type": "file",
+      "size": 147010
+    },
+    {
+      "path": "tests/data/JENYX-1d-cg-double-count.csv",
+      "type": "file",
+      "size": 163195
+    },
+    {
+      "path": "tests/data/KAP-IL-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 83278
+    },
+    {
+      "path": "tests/data/KAP-IL-1d-bad-div.csv",
+      "type": "file",
+      "size": 79393
+    },
+    {
+      "path": "tests/data/KEN-TA-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 61171
+    },
+    {
+      "path": "tests/data/KEN-TA-1d-bad-div.csv",
+      "type": "file",
+      "size": 54419
+    },
+    {
+      "path": "tests/data/KME-MI-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 94558
+    },
+    {
+      "path": "tests/data/KME-MI-1d-bad-div.csv",
+      "type": "file",
+      "size": 90903
+    },
+    {
+      "path": "tests/data/KMR-L-1d-no-bad-divs.csv",
+      "type": "file",
+      "size": 59642
+    },
+    {
+      "path": "tests/data/LA-V-1d-bad-stock-split-fixed.csv",
+      "type": "file",
+      "size": 3894
+    },
+    {
+      "path": "tests/data/LA-V-1d-bad-stock-split.csv",
+      "type": "file",
+      "size": 3899
+    },
+    {
+      "path": "tests/data/LSC-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 60608
+    },
+    {
+      "path": "tests/data/LSC-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 57472
+    },
+    {
+      "path": "tests/data/MOB-ST-1d-bad-stock-split-fixed.csv",
+      "type": "file",
+      "size": 1640
+    },
+    {
+      "path": "tests/data/MOB-ST-1d-bad-stock-split.csv",
+      "type": "file",
+      "size": 1822
+    },
+    {
+      "path": "tests/data/NVT-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 82249
+    },
+    {
+      "path": "tests/data/NVT-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 78408
+    },
+    {
+      "path": "tests/data/PSH-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 66209
+    },
+    {
+      "path": "tests/data/PSH-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 62207
+    },
+    {
+      "path": "tests/data/REL-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 66419
+    },
+    {
+      "path": "tests/data/REL-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 61590
+    },
+    {
+      "path": "tests/data/RGL-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 89978
+    },
+    {
+      "path": "tests/data/RGL-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 86264
+    },
+    {
+      "path": "tests/data/SAND-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 89135
+    },
+    {
+      "path": "tests/data/SAND-1d-bad-div.csv",
+      "type": "file",
+      "size": 85651
+    },
+    {
+      "path": "tests/data/SCR-TO-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 89100
+    },
+    {
+      "path": "tests/data/SCR-TO-1d-bad-div.csv",
+      "type": "file",
+      "size": 93334
+    },
+    {
+      "path": "tests/data/SERE-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 79134
+    },
+    {
+      "path": "tests/data/SERE-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 75730
+    },
+    {
+      "path": "tests/data/SPM-MI-1d-bad-stock-split-fixed.csv",
+      "type": "file",
+      "size": 2709
+    },
+    {
+      "path": "tests/data/SPM-MI-1d-bad-stock-split.csv",
+      "type": "file",
+      "size": 2966
+    },
+    {
+      "path": "tests/data/SSW-JO-1d-100x-error-fixed.csv",
+      "type": "file",
+      "size": 2103
+    },
+    {
+      "path": "tests/data/SSW-JO-1d-100x-error.csv",
+      "type": "file",
+      "size": 2082
+    },
+    {
+      "path": "tests/data/TEM-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 85252
+    },
+    {
+      "path": "tests/data/TEM-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 81788
+    },
+    {
+      "path": "tests/data/TENT-L-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 74033
+    },
+    {
+      "path": "tests/data/TENT-L-1d-bad-div.csv",
+      "type": "file",
+      "size": 70491
+    },
+    {
+      "path": "tests/data/TEP-PA-1d-bad-div-fixed.csv",
+      "type": "file",
+      "size": 86271
+    },
+    {
+      "path": "tests/data/TEP-PA-1d-bad-div.csv",
+      "type": "file",
+      "size": 82457
+    },
+    {
+      "path": "tests/data/TISG-MI-1d-no-bad-divs.csv",
+      "type": "file",
+      "size": 73578
+    },
+    {
+      "path": "tests/data/VWILX-1d-cg-double-count-fixed.csv",
+      "type": "file",
+      "size": 58407
+    },
+    {
+      "path": "tests/data/VWILX-1d-cg-double-count.csv",
+      "type": "file",
+      "size": 65677
+    },
+    {
+      "path": "yfinance/domain/__init__.py",
+      "type": "file",
+      "size": 112
+    },
+    {
+      "path": "yfinance/domain/domain.py",
+      "type": "file",
+      "size": 6585
+    },
+    {
+      "path": "yfinance/domain/industry.py",
+      "type": "file",
+      "size": 5347
+    },
+    {
+      "path": "yfinance/domain/market.py",
+      "type": "file",
+      "size": 3706
+    },
+    {
+      "path": "yfinance/domain/sector.py",
+      "type": "file",
+      "size": 5368
+    },
+    {
+      "path": "yfinance/scrapers/__init__.py",
+      "type": "file",
+      "size": 0
+    },
+    {
+      "path": "yfinance/scrapers/analysis.py",
+      "type": "file",
+      "size": 7467
+    },
+    {
+      "path": "yfinance/scrapers/fundamentals.py",
+      "type": "file",
+      "size": 6176
+    },
+    {
+      "path": "yfinance/scrapers/funds.py",
+      "type": "file",
+      "size": 11762
+    },
+    {
+      "path": "yfinance/scrapers/history.py",
+      "type": "file",
+      "size": 161684
+    },
+    {
+      "path": "yfinance/scrapers/holders.py",
+      "type": "file",
+      "size": 9606
+    },
+    {
+      "path": "yfinance/scrapers/quote.py",
+      "type": "file",
+      "size": 29690
+    },
+    {
+      "path": "yfinance/scrapers/yahoo-keys.txt",
+      "type": "file",
+      "size": 1032
+    },
+    {
+      "path": "yfinance/screener/__init__.py",
+      "type": "file",
+      "size": 170
+    },
+    {
+      "path": "yfinance/screener/query.py",
+      "type": "file",
+      "size": 9241
+    },
+    {
+      "path": "yfinance/screener/screener.py",
+      "type": "file",
+      "size": 11108
+    },
+    {
+      "path": "doc/source/_static/images",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/source/_static/logo-dark.webp",
+      "type": "file",
+      "size": 3238
+    },
+    {
+      "path": "doc/source/_static/logo-light.webp",
+      "type": "file",
+      "size": 3472
+    },
+    {
+      "path": "doc/source/_static/yfinance.css",
+      "type": "file",
+      "size": 82
+    },
+    {
+      "path": "doc/source/_templates/autosummary",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/source/advanced/caching.rst",
+      "type": "file",
+      "size": 540
+    },
+    {
+      "path": "doc/source/advanced/config.rst",
+      "type": "file",
+      "size": 1000
+    },
+    {
+      "path": "doc/source/advanced/index.rst",
+      "type": "file",
+      "size": 128
+    },
+    {
+      "path": "doc/source/advanced/logging.rst",
+      "type": "file",
+      "size": 260
+    },
+    {
+      "path": "doc/source/advanced/multi_level_columns.rst",
+      "type": "file",
+      "size": 640
+    },
+    {
+      "path": "doc/source/advanced/price_repair.rst",
+      "type": "file",
+      "size": 9543
+    },
+    {
+      "path": "doc/source/development/assets",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/source/development/code.rst",
+      "type": "file",
+      "size": 2952
+    },
+    {
+      "path": "doc/source/development/documentation.rst",
+      "type": "file",
+      "size": 1720
+    },
+    {
+      "path": "doc/source/development/index.rst",
+      "type": "file",
+      "size": 213
+    },
+    {
+      "path": "doc/source/development/running.rst",
+      "type": "file",
+      "size": 1334
+    },
+    {
+      "path": "doc/source/development/testing.rst",
+      "type": "file",
+      "size": 918
+    },
+    {
+      "path": "doc/source/reference/examples",
+      "type": "dir",
+      "size": null
+    },
+    {
+      "path": "doc/source/reference/index.rst",
+      "type": "file",
+      "size": 2111
+    },
+    {
+      "path": "doc/source/reference/yfinance.analysis.rst",
+      "type": "file",
+      "size": 1181
+    },
+    {
+      "path": "doc/source/reference/yfinance.calendars.rst",
+      "type": "file",
+      "size": 354
+    },
+    {
+      "path": "doc/source/reference/yfinance.financials.rst",
+      "type": "file",
+      "size": 423
+    },
+    {
+      "path": "doc/source/reference/yfinance.functions.rst",
+      "type": "file",
+      "size": 615
+    },
+    {
+      "path": "doc/source/reference/yfinance.funds_data.rst",
+      "type": "file",
+      "size": 169
+    },
+    {
+      "path": "doc/source/reference/yfinance.market.rst",
+      "type": "file",
+      "size": 491
+    },
+    {
+      "path": "doc/source/reference/yfinance.price_history.rst",
+      "type": "file",
+      "size": 169
+    },
+    {
+      "path": "doc/source/reference/yfinance.screener.rst",
+      "type": "file",
+      "size": 779
+    },
+    {
+      "path": "doc/source/reference/yfinance.search.rst",
+      "type": "file",
+      "size": 646
+    },
+    {
+      "path": "doc/source/reference/yfinance.sector_industry.rst",
+      "type": "file",
+      "size": 693
+    },
+    {
+      "path": "doc/source/reference/yfinance.stock.rst",
+      "type": "file",
+      "size": 649
+    },
+    {
+      "path": "doc/source/reference/yfinance.ticker_tickers.rst",
+      "type": "file",
+      "size": 1027
+    },
+    {
+      "path": "doc/source/reference/yfinance.websocket.rst",
+      "type": "file",
+      "size": 1101
+    },
+    {
+      "path": "doc/source/_static/images/repair-prices-100x.png",
+      "type": "file",
+      "size": 24216
+    },
+    {
+      "path": "doc/source/_static/images/repair-prices-missing-div-adjust.png",
+      "type": "file",
+      "size": 23718
+    },
+    {
+      "path": "doc/source/_static/images/repair-prices-missing-row.png",
+      "type": "file",
+      "size": 24851
+    },
+    {
+      "path": "doc/source/_static/images/repair-prices-missing-split-adjust.png",
+      "type": "file",
+      "size": 31079
+    },
+    {
+      "path": "doc/source/_static/images/repair-prices-missing-volume-daily.png",
+      "type": "file",
+      "size": 18097
+    },
+    {
+      "path": "doc/source/_static/images/repair-prices-missing-volume-intraday.png",
+      "type": "file",
+      "size": 17453
+    },
+    {
+      "path": "doc/source/_templates/autosummary/class.rst",
+      "type": "file",
+      "size": 638
+    },
+    {
+      "path": "doc/source/development/assets/branches.png",
+      "type": "file",
+      "size": 41810
+    },
+    {
+      "path": "doc/source/reference/examples/calendars.py",
+      "type": "file",
+      "size": 1155
+    },
+    {
+      "path": "doc/source/reference/examples/download.py",
+      "type": "file",
+      "size": 66
+    },
+    {
+      "path": "doc/source/reference/examples/funds_data.py",
+      "type": "file",
+      "size": 335
+    },
+    {
+      "path": "doc/source/reference/examples/live_async.py",
+      "type": "file",
+      "size": 568
+    },
+    {
+      "path": "doc/source/reference/examples/live_sync.py",
+      "type": "file",
+      "size": 456
+    },
+    {
+      "path": "doc/source/reference/examples/lookup.py",
+      "type": "file",
+      "size": 839
+    },
+    {
+      "path": "doc/source/reference/examples/market.py",
+      "type": "file",
+      "size": 101
+    },
+    {
+      "path": "doc/source/reference/examples/proxy.py",
+      "type": "file",
+      "size": 385
+    },
+    {
+      "path": "doc/source/reference/examples/search.py",
+      "type": "file",
+      "size": 254
+    },
+    {
+      "path": "doc/source/reference/examples/sector_industry.py",
+      "type": "file",
+      "size": 428
+    },
+    {
+      "path": "doc/source/reference/examples/sector_industry_ticker.py",
+      "type": "file",
+      "size": 312
+    },
+    {
+      "path": "doc/source/reference/examples/ticker.py",
+      "type": "file",
+      "size": 324
+    },
+    {
+      "path": "doc/source/reference/examples/tickers.py",
+      "type": "file",
+      "size": 235
+    }
+  ],
+  "languages": {
+    "Python": {
+      "bytes": 623210,
+      "percentage": 100.0
+    }
+  },
+  "signatures": [],
+  "test_examples": [],
+  "issues": [
+    {
+      "number": 2690,
+      "title": "[Feature] Add ETFQuery screener class",
+      "state": "open",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-02-09T16:49:06+00:00",
+      "updated_at": "2026-02-09T16:49:06+00:00",
+      "closed_at": null,
+      "url": "https://github.com/ranaroussi/yfinance/issues/2690",
+      "body": "Description:\nThis issue tracks the implementation of the `ETFQuery` class to enable ETF screening capabilities within the yfinance library, addressing the user demand for dedicated ETF screening similar to Equity and Fund screening.\n\nTechnical Approach:\n1.  **Constants**: Define `ETF_SCREENER_FIELDS` and `ETF_SCREENER_EQ_MAP` in `yfinance/const.py` to support ETF-specific attributes like `fundTotalAssets`, `annualReportExpenseRatio`, `ytdReturn`, `category`, and `fundFamily`.\n2.  **Query Class**"
+    },
+    {
+      "number": 2570,
+      "title": "pegRatio missing from yfinance.info since June 2025 (worked before)",
+      "state": "open",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-07-12T17:44:00+00:00",
+      "updated_at": "2026-02-08T14:45:57+00:00",
+      "closed_at": null,
+      "url": "https://github.com/ranaroussi/yfinance/issues/2570",
+      "body": "### Describe bug\n\nThe `pegRatio` field from `yfinance.Ticker(ticker).info` suddenly returns `None` for many tickers.\n\nUntil May 30, 2025, this worked fine for stocks like `AAPL`, `MSFT`, `GOOGL`. Since June, it seems to have silently broken – the field is missing entirely in the `.info` dictionary.\n\nI checked that the PEG ratio is still visible on Yahoo Finance directly, so the data exists.\n\n\n### Simple code that reproduces your problem\n\nimport yfinance as yf\n\nticker = yf.Ticker(\"AAPL\")\ninfo = t"
+    },
+    {
+      "number": 2688,
+      "title": "Output array is read-only when repair=True",
+      "state": "open",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-02-06T15:17:06+00:00",
+      "updated_at": "2026-02-08T12:56:55+00:00",
+      "closed_at": null,
+      "url": "https://github.com/ranaroussi/yfinance/issues/2688",
+      "body": "### Describe bug\n\nyfinance/scrapers/history.py\", line 2723, in _fix_prices_sudden_change\n    price_data[:,j] *= adj\nValueError: output array is read-only\n\n### Simple code that reproduces your problem\n\nimport yfinance as yf\nfrom curl_cffi import requests as requests_cffi\nfrom functools import partial\n\nyf.enable_debug_mode()\n\nsession = requests_cffi.Session(impersonate=\"chrome\")\nsession.request = partial(session.request, timeout=60)\n\nstock = yf.Ticker(\"MSFT\", session=session)\n\nstock.history(period"
+    },
+    {
+      "number": 2528,
+      "title": "Impersonating chrome136 is not supported",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-06-10T15:20:49+00:00",
+      "updated_at": "2026-01-31T15:57:05+00:00",
+      "closed_at": "2025-06-20T12:45:33+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2528",
+      "body": "### Describe bug\n\nFile [/nix/store/syy525yj5pmcjb89yzjsk2p785kxc6k4-python3-3.13.3-env/lib/python3.13/site-packages/curl_cffi/requests/utils.py:581](http://localhost:8888/nix/store/syy525yj5pmcjb89yzjsk2p785kxc6k4-python3-3.13.3-env/lib/python3.13/site-packages/curl_cffi/requests/utils.py#line=580), in set_curl_options(curl, method, url, params_list, base_url, data, json, headers_list, cookies_list, files, auth, timeout, allow_redirects, max_redirects, proxies_list, proxy, proxy_auth, verify_lis"
+    },
+    {
+      "number": 2686,
+      "title": "Random Volume zero values",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-27T15:57:52+00:00",
+      "updated_at": "2026-01-28T20:46:50+00:00",
+      "closed_at": "2026-01-28T20:46:50+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2686",
+      "body": "### Describe bug\n\nRandom Volume 0 values. They're in about half of the output. I see no pattern otherwise. The Yahoo Finance site doesn't let me check intra-day intervals.\n\nYour logging hint below doesn't specify where to get the logging output from; it links to https://github.com/ranaroussi/yfinance/tree/main#logging which shows the same exact thing as https://github.com/ranaroussi/yfinance/tree/main. Searching for \"logging\" in either page shows 0 results. The hint appears to be outdated.\n\n### "
+    },
+    {
+      "number": 2670,
+      "title": "NoneType protection fails",
+      "state": "open",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-12T01:31:24+00:00",
+      "updated_at": "2026-01-27T11:26:57+00:00",
+      "closed_at": null,
+      "url": "https://github.com/ranaroussi/yfinance/issues/2670",
+      "body": "### Describe bug\n\nLine 224\nyfinance/scrapers/history.py:\n`if data['chart']['result'] is None:`\n\nThis line fails if `data['chart']` itself is None.\n\nRecommended fix, since I don't know the process to push:\n\n`if data.get('chart', {}).get('result') is None:`\n\n### Simple code that reproduces your problem\n\nn/a\n\n### Debug log from yf.enable_debug_mode()\n\nn/a\n\n### Bad data proof\n\n_No response_\n\n### `yfinance` version\n\n1.0\n\n### Python version\n\n_No response_\n\n### Operating system\n\n_No response_"
+    },
+    {
+      "number": 2616,
+      "title": "[Bug] Failed to get ticker — fc.yahoo.com blocked by AdGuard (AdAway Default Blocklist)",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-10-28T21:00:15+00:00",
+      "updated_at": "2026-01-26T13:34:45+00:00",
+      "closed_at": "2025-10-28T21:00:19+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2616",
+      "body": "### 🧩 Description\n\nWhen using `yfinance`, I encountered repeated connection errors like the following:\n\n```\nFailed to get ticker '1605.T' reason: Failed to perform, curl: (7) Failed to connect to fc.yahoo.com port 443 after 2026 ms: Could not connect to server.\n```\n\nAfter some investigation, I found that this issue occurs **if you are using AdGuard (or other DNS-based blockers)**, because **the AdAway Default Blocklist includes `fc.yahoo.com`**, which is required by Yahoo Finance’s API.\n\n### 💡 S"
+    },
+    {
+      "number": 2660,
+      "title": "Price repair split false-positive",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-03T04:58:10+00:00",
+      "updated_at": "2026-01-25T13:48:23+00:00",
+      "closed_at": "2026-01-25T13:48:23+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2660",
+      "body": "### Describe bug\n\nPrice repair seems to make up stock splits that never happened.\n\n### Simple code that reproduces your problem\n\n```\ndf = yf.download(\"GME\", period=\"max\", interval=\"1d\", auto_adjust=False, repair=True, multi_level_index=False, progress=False)\ndf.iloc[4765:4775]\n```\n\nReturns\n\n```\n             Adj Close       Close        High        Low       Open  Repaired?     Volume\nDate                                                                                      \n2021-01-19   39.360001"
+    },
+    {
+      "number": 2666,
+      "title": "Dividends data is really sum of dividends and Capital gain (incorrectly)",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-10T02:40:43+00:00",
+      "updated_at": "2026-01-25T13:48:03+00:00",
+      "closed_at": "2026-01-25T13:48:03+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2666",
+      "body": "### Describe bug\n\nThe dividend column is incorrect. Specifically, dividend as reported by yahoo is the sum of dividends and capital gain distribution. As a result, the Adjusted Close data is also incorrect (because it adjusts the closing price based on the sum of dividends and capital gain). This introduces a first-order and significant error in adjusted close price.\n\nHere is a simple code to verify this:\n\n`import yfinance as yf\n\nfund = yf.Ticker(\"VWILX\")\ndata = fund.history(start=\"2025-12-01\", "
+    },
+    {
+      "number": 2684,
+      "title": "yf version 0.2.57 curl_cffi 0.5.10 py 3.7.9 - AttributeError('str' object has no attribute 'name') when using sessions",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-25T02:33:05+00:00",
+      "updated_at": "2026-01-25T02:33:14+00:00",
+      "closed_at": "2026-01-25T02:33:14+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2684",
+      "body": "Few mlast days I was figting with Error:\nAttributeError('str' object has no attribute 'name') when using simplest \ndat_f = yf.download(\"AAPL\", start=\"2020-01-01\", end=\"2021-01-01\", session=session)\n\nI cannot install python>3.7.9 yf version>0.2.57 curl_cffi>0.5.10 so i thought that i stuck\nbut recently I found an solution by replacing data.py and config.pl from future release (1.1.0 1.0) \n    # data.py : https://github.com/ranaroussi/yfinance/blob/main/yfinance/data.py\n    # config.py :  https://"
+    },
+    {
+      "number": 2679,
+      "title": "Deprecation warning when using Pandas 3.0",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-22T12:52:44+00:00",
+      "updated_at": "2026-01-24T12:08:11+00:00",
+      "closed_at": "2026-01-24T12:08:11+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2679",
+      "body": "### Describe bug\n\n`yfinance` defines the dependency with Pandas as: `pandas>=1.3.0`\n\nWith the release of Pandas 3.0.0 it now shows a deprecation warning in multiple places like:\n```\n.venv/lib/python3.13/site-packages/yfinance/scrapers/quote.py:702: Pandas4Warning: Timestamp.utcnow is deprecated and will be removed in a future version. Use Timestamp.now('UTC') instead.\n.venv/lib/python3.13/site-packages/yfinance/scrapers/quote.py:704: Pandas4Warning: Timestamp.utcnow is deprecated and will be rem"
+    },
+    {
+      "number": 2672,
+      "title": "Python 3.9 compatibility lost in 1.0",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-17T21:11:15+00:00",
+      "updated_at": "2026-01-21T00:38:32+00:00",
+      "closed_at": "2026-01-21T00:38:32+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2672",
+      "body": "### Describe bug\n\nImporting yfinance fails on Python 3.9 due to runtime-evaluated type annotations in yfinance/calendars.py that use PEP 604 unions (|) together with builtin generics (list[...]). This raises a TypeError during class definition, preventing yfinance from importing.\n\n### Simple code that reproduces your problem\n\nimport yfinance as yf\nprint(\"yfinance:\", yf.__version__)\ndf = yf.download(\"AAPL\", period=\"5d\", progress=False)\nprint(df.tail())\n\n<img width=\"1226\" height=\"446\" alt=\"Image\" "
+    },
+    {
+      "number": 2676,
+      "title": "Unable to download Stock Data: TypeError(\"'NoneType' object is not subscriptable\")",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-20T02:08:54+00:00",
+      "updated_at": "2026-01-20T10:00:58+00:00",
+      "closed_at": "2026-01-20T10:00:58+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2676",
+      "body": "### Describe bug\n\nyfinance gives TypeError message:\n\nTypeError(\"'NoneType' object is not subscriptable\")\n\nPlease help, unable to download data.\n\n### Simple code that reproduces your problem\n\n```python\n        df = yf.download(ticker, start=start_date, end=end_date, interval=interval)\n        # Optionally add current price to the last row\n        df.columns = df.columns.droplevel(\"Ticker\")\n        if df.empty:\n            error_map = getattr(getattr(yf, \"shared\", None), \"_ERRORS\", {}) or {}\n     "
+    },
+    {
+      "number": 2517,
+      "title": "Internal cURL exception is exposed to users when a not-present ticker is requested",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-05-25T12:33:24+00:00",
+      "updated_at": "2026-01-19T23:21:03+00:00",
+      "closed_at": "2026-01-19T23:21:03+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2517",
+      "body": "### Describe bug\n\nYFinance internal exception `curl_cffi.requests.exceptions.HTTPError: HTTP Error 404` is thrown when a non-existing ticker is requested.\n\nIt should be abstracted under a common, documented behaviour how this situation is exposed to users and not expose internal workings (e.g. cURL backend).\n\n### Simple code that reproduces your problem\n\n```python\nimport yfinance as yf\nstock = yf.Ticker('ABCDEFGHIJKLMONP')\nstock.history(period=\"max\")\n```\n\n### Debug log from yf.enable_debug_mode("
+    },
+    {
+      "number": 2518,
+      "title": "[0.2.61] Still 429 Error: Too Many Requests after trying previous fixes",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-05-27T15:27:47+00:00",
+      "updated_at": "2026-01-19T23:20:54+00:00",
+      "closed_at": "2026-01-19T23:20:54+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2518",
+      "body": "Hi all,\n\nI looked at #2480, #2483 and #2422 for solutions, upgraded yfinance to 0.2.61, tried cull_cffi impersonate, but still getting the same error in my local IDE with Python version 3.11.7.\n\n**Simple code that replicates the error:**\nimport yfinance as yf\nbaba = yf.Ticker(\"BABA\")\nprint(baba.info)\n\n**Debug log from yf.enable_debug_mode()**\nDEBUG    get_raw_json(): https://query2.finance.yahoo.com/v10/finance/quoteSummary/BABA\nDEBUG    Entering get()\nDEBUG     url=https://query2.finance.yahoo."
+    },
+    {
+      "number": 2520,
+      "title": "Error in dowload historical data: JSONDecodeError('Expecting value: line 1 column 1 (char 0)')",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-05-30T04:50:13+00:00",
+      "updated_at": "2026-01-19T23:20:46+00:00",
+      "closed_at": "2026-01-19T23:20:46+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2520",
+      "body": "I tried to dowload historical data using the 0.2.61 version.\nI am getting the following error for all the stock tickers\n\ndf = yf.download(ticker, auto_adjust=False, actions=False, start=start_date, end=end_date)\n\nError:\ndownload ['GOOG']: JSONDecodeError('Expecting value: line 1 column 1 (char 0)')\n\nPlease suggest the solution to this.\nThank you. "
+    },
+    {
+      "number": 2576,
+      "title": "test_ticker unit test is failing",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-08-03T03:35:48+00:00",
+      "updated_at": "2026-01-19T23:20:19+00:00",
+      "closed_at": "2026-01-19T23:20:19+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2576",
+      "body": "### Describe bug\n\nHi,\n\nI found that the test in yfinance/tests/test_ticker.py is broken due to the following error:\n\n```\n======================================================================\nFAIL: test_empty_info (tests.test_ticker.TestTickerInfo)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/eva/Documents/GitHub/yfinance/tests/test_ticker.py\", line 1045, in test_empty_info\n    self.assertCountEqual(expected_keys, data.k"
+    },
+    {
+      "number": 2527,
+      "title": "HTTPError No Longer Thrown",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-06-10T15:08:58+00:00",
+      "updated_at": "2026-01-19T23:20:02+00:00",
+      "closed_at": "2026-01-19T23:20:02+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2527",
+      "body": "I am presently using a list of symbols where the designation is different between sources (i.e. Yahoo vs. broker); mostly geared around preferred stock. To compensate for this, I created on my end a symbol vs. alternates translation, and if YFinance was throwing a HTTPError from curl_cffi when trying to access Tickers.tickers[value].info , I would skip and move to the next in the list, later doing a translation comparison for the Yahoo version of the symbol to ensure I have the correct data.\n\nHo"
+    },
+    {
+      "number": 2639,
+      "title": "Create a new field to differentiate between ETF and Stocks in yf.ticker.info",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-09T08:17:37+00:00",
+      "updated_at": "2026-01-19T23:19:09+00:00",
+      "closed_at": "2026-01-19T23:19:09+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2639",
+      "body": "Can we have a separate field to classify ETF and Stocks separately in yf.ticker.info, currently this info is not available. "
+    },
+    {
+      "number": 2657,
+      "title": "yf.Search() returns wrong symbol suffix .SG (Singapore) for Stuttgart exchange instruments",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-26T12:41:48+00:00",
+      "updated_at": "2026-01-19T23:18:49+00:00",
+      "closed_at": "2026-01-19T23:18:49+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2657",
+      "body": "### Describe bug\n\nWhen using yf.Search() with an ISIN, the API correctly identifies the exchange as STU (Stuttgart), but returns the symbol with suffix .SG which corresponds to Singapore Stock Exchange, not Stuttgart.\n\nThis causes subsequent yf.Ticker() calls to fail because the instrument doesn't exist on the Singapore exchange.\n\nSimple Reproducible Example\n\n``` python\nimport yfinance as yf\n\n# Search for HANetf Future of Defence UCITS ETF\nsearch = yf.Search(\"IE000OJ5TQP4\")\n\n# Check the first re"
+    },
+    {
+      "number": 2213,
+      "title": "Can we just raise HTTPErrors instead of logging them?",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-01-08T21:16:42+00:00",
+      "updated_at": "2026-01-19T23:17:51+00:00",
+      "closed_at": "2026-01-19T23:17:51+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2213",
+      "body": "### Describe bug\n\nThe `_fetch` method on `Quote` in `scrapers.quote` checks a few things and raises error. Just `requests.exceptions.HTTPError` is not raised. Instead it is caught and an error is logged (see: https://github.com/ranaroussi/yfinance/blob/5adddf3e88f39720ef24a04927738848dee76761/yfinance/scrapers/quote.py#L589)\r\n\r\n```python\r\n        try:\r\n            result = self._data.get_raw_json(_QUOTE_SUMMARY_URL_ + f\"/{self._symbol}\", user_agent_headers=self._data.user_agent_headers, params=p"
+    },
+    {
+      "number": 1436,
+      "title": "problem with 30 mins Time frame for ^NSEI (national stock exchange of india)",
+      "state": "closed",
+      "labels": [
+        "Help wanted"
+      ],
+      "milestone": null,
+      "created_at": "2023-02-28T08:04:53+00:00",
+      "updated_at": "2026-01-19T23:17:33+00:00",
+      "closed_at": "2026-01-19T23:17:33+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/1436",
+      "body": "There is problem with 30 mins time frame with indian stocks.\r\nthe 30 mins time interval data is showing wrong open and close.\r\nfor example:\r\nin nifty, the first 30 mins candle is starts from 9:15 and, ends at 9:30.\r\nand after that it is continueing from 9:30 to 10:00.\r\nbut, because of this, our all strategies getting destroied, as normal candle starts at 9:15, and ends at 9:45.\r\nthe last candle of nifty should be of 15 mins, i.e. starts at 15:15, and ends at 15:30.\r\nPlease solve this issue as so"
+    },
+    {
+      "number": 2272,
+      "title": "Screening by industries",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-02-17T13:06:29+00:00",
+      "updated_at": "2026-01-19T23:17:24+00:00",
+      "closed_at": "2026-01-19T23:17:24+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2272",
+      "body": "Hi!\nIs it possible to add a feature for screening by industries?\nCurrently, I do it like this:\n```\n   from yfinance.const import EQUITY_SCREENER_EQ_MAP, EQUITY_SCREENER_FIELDS\n   from yfinance import EquityQuery\n   sector = \"Basic Materials\"\n   industry = \"Chemicals\"\n   EQUITY_SCREENER_FIELDS.get(\"eq_fields\").update([\"industry\"])\n   EQUITY_SCREENER_EQ_MAP.update({\"industry\": f\"{industry}\"})\n   query =  EquityQuery(\"and\", [EquityQuery(\"is-in\", [\"sector\", f\"{sector}\"]), EquityQuery(\"is-in\", [\"indu"
+    },
+    {
+      "number": 2617,
+      "title": "Problem with Screener and Query by Industry",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-10-29T21:41:25+00:00",
+      "updated_at": "2026-01-19T23:17:20+00:00",
+      "closed_at": "2026-01-19T23:17:20+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2617",
+      "body": "### Describe bug\n\nHi. I'm trying to query some industries, but not success \n\nAll empty list:\nSector: Consumer Defensive - Industry: Beverages - Brewers\nSector: Consumer Defensive - Industry: Beverages - Non-Alcoholic\nSector: Consumer Defensive - Industry: Beverages - Wineries & Distilleries\nSector: Energy - Industry: Oil Gas Drilling\nSector: Energy - Industry: Oil Gas E P\nSector: Energy - Industry: Oil Gas Equipment Services\nSector: Energy - Industry: Oil Gas Integrated\nSector: Energy - Industry"
+    },
+    {
+      "number": 2649,
+      "title": "Tickers.history throws ValueError when using start and end",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-20T16:23:40+00:00",
+      "updated_at": "2026-01-19T23:17:09+00:00",
+      "closed_at": "2026-01-19T23:17:09+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2649",
+      "body": "### Describe bug\n\nThe `Tickers.history` function throws a `ValueError` when using the `start` and `end` keywords, saying that they cannot be set with `period`.\n\n### Simple code that reproduces your problem\n\n```\nimport yfinance as yf\n\nticker_list = [\"TD.TO\", \"RY.TO\", \"BMO.TO\"]\n\ntickers = yf.Tickers(ticker_list)\n\ndf = tickers.history(start='2025-11-01', end='2025-11-30')\n```\n\n### Debug log from yf.enable_debug_mode()\n\nDEBUG    Entering download()\nDEBUG     Disabling multithreading because DEBUG lo"
+    },
+    {
+      "number": 2643,
+      "title": "repair=True inconsistent behaviour",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-17T09:24:30+00:00",
+      "updated_at": "2026-01-19T23:17:01+00:00",
+      "closed_at": "2026-01-19T23:17:01+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2643",
+      "body": "### Describe bug\n\nWhen running .history(repair=True) or .download(repair=True) to **fix missing data**, the success/failure seems to depend on whether other fixes (i.e. dividend fix, currency fix, 100x, etc.) were applied before the date of missing data.\n\nCase in point: Some US tickers are missing data on 12th December 2025; example ticker used: 'AON'\n\nRunning `yf.download('AON', repair=True)`, 12th December data repaired:\n\n<img width=\"459\" height=\"587\" alt=\"Image\" src=\"https://github.com/user-a"
+    },
+    {
+      "number": 2645,
+      "title": "latest version 2.66 is failing in pip install with failed to build 'curl_cffi' when getting requirements to build wheel on macOS Big Sur 11.7.10 (20G1427)",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-18T05:50:11+00:00",
+      "updated_at": "2026-01-19T23:16:50+00:00",
+      "closed_at": "2026-01-19T23:16:50+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2645",
+      "body": "### Describe bug\n\nHomebrew installed  using python VENV per project\n\n%|=> which python3\n.venv/bin/python3\n\n%|=> python --version\nPython 3.14.2\n\n%|=> pip install yfinance --no-cache-dir\nCollecting yfinance\nDownloading yfinance-0.2.66-py2.py3-none-any.whl.metadata (6.0 kB)\nRequirement already satisfied: pandas>=1.3.0 in ./.venv/lib/python3.14/site-packages (from yfinance) (2.3.3)\nRequirement already satisfied: numpy>=1.16.5 in ./.venv/lib/python3.14/site-packages (from yfinance) (2.3.5)\nRequiremen"
+    },
+    {
+      "number": 2675,
+      "title": "New feature request: ETFQuery class",
+      "state": "open",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-18T14:18:54+00:00",
+      "updated_at": "2026-01-18T14:57:38+00:00",
+      "closed_at": null,
+      "url": "https://github.com/ranaroussi/yfinance/issues/2675",
+      "body": "Would it be possible to implement an ETFQuery class the same way EquityQuery and FundQuery classes were implemented?\nJust asking because Yahoo Finance has a dedicated screener for this feature and I didn't manage to get any relevant info about ETFs through EquityQuery or FundQuery."
+    },
+    {
+      "number": 2285,
+      "title": "JSONDecodeError while downloading stock data",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-02-19T07:58:32+00:00",
+      "updated_at": "2026-01-16T10:36:20+00:00",
+      "closed_at": "2025-02-19T13:52:41+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2285",
+      "body": "Hi,\n\nWhen I use `yf.download`  it raises `JSONDecodeError('Expecting value: line 1 column 1 (char 0)')` .\n\nBut it worked well before (The last use was yesterday)\n\nyfinance version: yfinance version:  0.2.44\n\nPython version: 3.11.3\n\nI do not want to upgrade my `yfinance `and  **code** how do I deal with this error "
+    },
+    {
+      "number": 2340,
+      "title": "Yahoo Finance Historical Data Access Failure Due to Premium Subscription Requirement",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-03-02T20:39:33+00:00",
+      "updated_at": "2026-01-15T21:24:19+00:00",
+      "closed_at": "2025-05-07T08:19:40+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2340",
+      "body": "### Describe bug\n\n\nThe script/tool fails to retrieve historical stock data from Yahoo Finance, resulting in errors such as:\n- `$TSLA: possibly delisted; no price data found (1d 2024-03-02 22:32:35.579520 -> 2025-03-02)`\n- `$^GSPC: possibly delisted; no price data found (1d 2024-03-02 22:32:35.579520 -> 2025-03-02)`\n- `Error in analysis: single positional indexer is out-of-bounds`\n\n#### Expected Behavior\nThe script should successfully fetch historical stock data for symbols like `$TSLA` and `$^GS"
+    },
+    {
+      "number": 2411,
+      "title": "YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-04-23T12:25:05+00:00",
+      "updated_at": "2026-01-15T21:23:57+00:00",
+      "closed_at": "2025-05-01T07:51:21+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2411",
+      "body": "I keep getting the following error even from different IPs so i dont think its because of number of connections.  already upgrade yfinance to latest version and tried but its showing same error \n\npython --version\nPython 3.9.7\n\npip show yfinance\nName: yfinance\nVersion: 0.2.54\n\nIts the same issue even if i upgrade yfinance to latest version.  "
+    },
+    {
+      "number": 2526,
+      "title": "Still \"Too Many Requests\" Error also in Version 0.2.62",
+      "state": "open",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-06-10T12:33:54+00:00",
+      "updated_at": "2026-01-15T21:23:54+00:00",
+      "closed_at": null,
+      "url": "https://github.com/ranaroussi/yfinance/issues/2526",
+      "body": "### Describe bug\n\n**Issue Description**\nyfinance shows different behavior between interactive Python interpreter mode and script execution mode. In script mode, fetching stock information fails with a \"Too Many Requests\" error, while identical code works correctly in interactive mode.\n\n###Root Cause\nThe problem originates in the _get_ticker_tz() function (in base.py) and its interaction with the caching system:\n1.\tIn interactive mode, _fetch_ticker_tz() is called when a symbol is not in the cach"
+    },
+    {
+      "number": 2659,
+      "title": "Contribution link is broken on pypi.org",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-02T22:06:32+00:00",
+      "updated_at": "2026-01-10T12:20:12+00:00",
+      "closed_at": "2026-01-10T12:20:12+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2659",
+      "body": "### Describe bug\n\nOn https://pypi.org/project/yfinance/ the link to contributing.md is broken under installation.\n\nLink on PyPi: https://pypi.org/project/yfinance/CONTRIBUTING.md\nLink on GitHub readme.md: https://github.com/ranaroussi/yfinance/blob/main/CONTRIBUTING.md\n\n### Simple code that reproduces your problem\n\nGo to https://pypi.org/project/yfinance/ and click on the sentence \n\n[yfinance relies on the community to investigate bugs and contribute code. Here's how you can help.](https://pypi."
+    },
+    {
+      "number": 2663,
+      "title": "README file: LICENSE.txt link works on GitHub but is broken on PyPI",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2026-01-07T12:59:05+00:00",
+      "updated_at": "2026-01-10T12:19:48+00:00",
+      "closed_at": "2026-01-10T12:19:48+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2663",
+      "body": "### Describe bug\n\nThe README contains a relative link to LICENSE.txt which works on GitHub, but is broken when rendered on PyPI.\n\n### Simple code that reproduces your problem\n\n1. Go to https://pypi.org/project/yfinance/\n2. Scroll down to the \"Legal Stuff\" section\n3. Look for the sentence: \"See the LICENSE.txt file in the release for details.\"\n4. Click the \"LICENSE.txt\" link (https://pypi.org/project/yfinance/LICENSE.txt/)\n5. Observe that it leads to a 404 page\n\nREADME.md markdown:\n\"See the [LICE"
+    },
+    {
+      "number": 2463,
+      "title": "[0.2.59] CertificateVerifyError('Failed to perform, curl: (60) SSL certificate problem: self signed certificate in certificate chain. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.')",
+      "state": "open",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-05-08T12:24:15+00:00",
+      "updated_at": "2026-01-05T12:41:42+00:00",
+      "closed_at": null,
+      "url": "https://github.com/ranaroussi/yfinance/issues/2463",
+      "body": "### Describe bug\n\nHello,\n\nusing yfinance ==0.2.59 and python 3.3.13 I get an error message while running a line of code\n\nCould anyone give me some suggestions? This issue came after the Rate limiting one:  [YFRateLimitError('Too Many Requests)](https://github.com/ranaroussi/yfinance/issues/2422)\n\n### Simple code that reproduces your problem\n\nyf.download(actifs_cad, start = last_day_of_last_year)['Close']\n\n\n### Debug log from yf.enable_debug_mode()\n\nError:\nCertificateVerifyError('Failed to perfor"
+    },
+    {
+      "number": 2596,
+      "title": "Get all holdings for an ETF",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-09-14T13:41:18+00:00",
+      "updated_at": "2026-01-02T14:38:44+00:00",
+      "closed_at": "2026-01-02T14:38:44+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2596",
+      "body": "Is there a way in which I can get list of all holdings and their percentage in an ETF and not just the top 10 holdings? I am using ticker.funds_data.top_holdings but that only gives the top 10. Would like to get all holdings."
+    },
+    {
+      "number": 2658,
+      "title": "no data for this range, yfinance is block for all python apps",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-26T12:49:07+00:00",
+      "updated_at": "2026-01-02T14:38:24+00:00",
+      "closed_at": "2026-01-02T14:38:24+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2658",
+      "body": "curl -I \"https://query2.finance.yahoo.com/v8/finance/chart/AAPL?range=7d&interval=7d\"\nHTTP/2 429 \ndate: Fri, 26 Dec 2025 12:30:52 GMT\nserver: ATS\nx-content-type-options: nosniff\nreferrer-policy: no-referrer-when-downgrade\ncontent-length: 23\ncontent-type: text/html, when you run it on python , no data for this range, ive updated yfinance, change ip , still blocked\n"
+    },
+    {
+      "number": 2646,
+      "title": "W5000 Data not found",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-18T06:19:22+00:00",
+      "updated_at": "2025-12-20T19:15:39+00:00",
+      "closed_at": "2025-12-20T19:15:38+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2646",
+      "body": "### Describe bug\n\n^W5000 quotes should have the '^' changed to a \"%5E\".\n\n### Simple code that reproduces your problem\n\nyf.Ticker('^W5000', .history(period='max', auto_adjust=True)\n\n### Debug log from yf.enable_debug_mode()\n\nDEBUG    Entering history()\nDEBUG     Entering _fetch_ticker_tz()\nDEBUG      Entering get()\nDEBUG       Entering _make_request()\nDEBUG        url=https://query2.finance.yahoo.com/v8/finance/chart/W^5000\nDEBUG        params=frozendict.frozendict({'range': '1d', 'interval': '1d"
+    },
+    {
+      "number": 1008,
+      "title": "Fetch MarketCap historically",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2022-05-27T07:36:51+00:00",
+      "updated_at": "2025-12-19T07:20:38+00:00",
+      "closed_at": "2024-03-14T21:38:58+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/1008",
+      "body": "Using the provided code we can fetch one of the following data points\r\n\r\n1) The current MarketCap\r\n2) Historical data of Open High Low Close and Volume\r\n\r\n```\r\nmsft = yf.Ticker(\"MSFT\")\r\nmsft.info['marketCap']\r\nmsft.history()\r\n```\r\n\r\nCan we somehow can historical information of the marketcap?\r\n\r\nThanks."
+    },
+    {
+      "number": 2644,
+      "title": "2.66 version is not installing with pip in VENV",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-18T05:45:16+00:00",
+      "updated_at": "2025-12-18T10:50:57+00:00",
+      "closed_at": "2025-12-18T10:50:57+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2644",
+      "body": "%|=> which python3\n<path>/.venv/bin/python3\n____________\n%|=> python --version\nPython 3.14.2\n____________\n\n%|=> pip install yfinance --no-cache-dir\nCollecting yfinance\n  Downloading yfinance-0.2.66-py2.py3-none-any.whl.metadata (6.0 kB)\nRequirement already satisfied: pandas>=1.3.0 in ./.venv/lib/python3.14/site-packages (from yfinance) (2.3.3)\nRequirement already satisfied: numpy>=1.16.5 in ./.venv/lib/python3.14/site-packages (from yfinance) (2.3.5)\nRequirement already satisfied: requests>=2.31"
+    },
+    {
+      "number": 2641,
+      "title": "Screener ESG values",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-14T06:06:39+00:00",
+      "updated_at": "2025-12-15T21:51:02+00:00",
+      "closed_at": "2025-12-15T21:50:02+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2641",
+      "body": "Hi,\nI have in vain tried the use the screener functions to fetch the ESG values like:\nEnvironmental Score__ \nESG Score__ \nGovernance Score__\nSocial Score__\nHighest Controversy__\n\nWhich are exposed in their own web screener - Any insides as to whether they are exposed?\n\nThanks in advance for tips."
+    },
+    {
+      "number": 2636,
+      "title": "Can you please add the function to check if Ticker exists?",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-05T05:38:26+00:00",
+      "updated_at": "2025-12-05T06:06:25+00:00",
+      "closed_at": "2025-12-05T06:06:25+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2636",
+      "body": "### Describe bug\n\nwhen making a request using \"QQQQQQQ\" Ticker, it gives 200 res code and doesn't throw error\n\n### Simple code that reproduces your problem\n\ndat = yf.Ticker(\"QQQQQQQ\")\n\nreturns 200 \n\n### Debug log from yf.enable_debug_mode()\n\n.\n\n### Bad data proof\n\n_No response_\n\n### `yfinance` version\n\n0.2.66\n\n### Python version\n\n3.14\n\n### Operating system\n\nmacOS 26.1"
+    },
+    {
+      "number": 2635,
+      "title": "Futures data missing",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-03T16:42:07+00:00",
+      "updated_at": "2025-12-04T08:54:51+00:00",
+      "closed_at": "2025-12-03T19:50:46+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2635",
+      "body": "### Describe bug\n\nhi! I have noticed that there is missing data for some tickers (futures mostly) recently. From the below you can see that there is a jump from 24 Nov to 3 Dec. Oddly, on 2 and 1 Dec the data was available for those dates but it now seems to be missing. This issue does not seem to occur with other non-future tickers. I also see that Yahoo Finance is displaying the data without omissions on the website.\n\n### Simple code that reproduces your problem\n\nimport yfinance as yf\ndf = yf."
+    },
+    {
+      "number": 2633,
+      "title": "curl_cffi.requests.exceptions.SSLError when fetching data from tickers",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-12-01T11:34:27+00:00",
+      "updated_at": "2025-12-01T11:44:53+00:00",
+      "closed_at": "2025-12-01T11:44:53+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2633",
+      "body": "### Describe bug\n\n```python\nimport yfinance as yf\nmsft = yf.Ticker('MSFT')\nmsft.info\n```\nEnd output:\n```\ncurl_cffi.requests.exceptions.SSLError: Failed to perform, curl: (35) TLS connect error: error:00000000:invalid library (0):OPENSSL_internal:invalid library (0). See https://curl.se/libcurl/c/libcurl-errors.html first for more details.\n```\n\n### Simple code that reproduces your problem\n\n```python\nimport yfinance as yf\nmsft = yf.Ticker('MSFT')\nmsft.info\n```\n\n```python\nsymbols = ['AAPL', 'MSFT']"
+    },
+    {
+      "number": 2630,
+      "title": "Can you add the function to obtain overnight quote?",
+      "state": "open",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-11-25T05:33:39+00:00",
+      "updated_at": "2025-11-29T19:43:01+00:00",
+      "closed_at": null,
+      "url": "https://github.com/ranaroussi/yfinance/issues/2630",
+      "body": "after midnight 12am, yahoo finance page https://finance.yahoo.com/quote/AAPL\ncan show the overnight quote of stock after the last day's close price. \n\nCan we add an api all to return this information?  e.g. via fast_info"
+    },
+    {
+      "number": 2629,
+      "title": "1 Day Data is Broken",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2025-11-21T00:14:43+00:00",
+      "updated_at": "2025-11-22T08:19:44+00:00",
+      "closed_at": "2025-11-21T14:34:01+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/2629",
+      "body": "### Describe bug\n\nIt seems Yahoo Finance doesn't return 1 day data. I had to use 5 days data instead. I was fetching 82 tickers.\n\n### Simple code that reproduces your problem\n\n```\n# BROKEN\nyf.download(tickers=my_tickers, period=\"1d\",  interval=\"1h\", group_by=\"ticker\")\n\n# WORKS OK\nyf.download(tickers=my_tickers, period=\"5d\",  interval=\"1h\", group_by=\"ticker\")\n```\n\n### Debug log from yf.enable_debug_mode()\n\n--\n\n### Bad data proof\n\n--\n\n### `yfinance` version\n\nlatest\n\n### Python version\n\n_No respons"
+    },
+    {
+      "number": 1285,
+      "title": "Failed to download indices.",
+      "state": "closed",
+      "labels": [],
+      "milestone": null,
+      "created_at": "2023-01-08T05:24:31+00:00",
+      "updated_at": "2025-11-20T03:58:02+00:00",
+      "closed_at": "2023-04-11T20:10:11+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/issues/1285",
+      "body": "Hi!\r\nI got into trouble when I tried to download S&P500 Index history. The code for S&P500 in Yahoo Finance is ^GSPC, am I right? However I could download stocks like Apple, Amazon successfully. I don't know what is going on. Could you tell me how to fix it? Thanks a lot!\r\n![aapl](https://user-images.githubusercontent.com/121948670/211181767-da0768df-2ead-4182-a521-dc9b9c5735ed.png)\r\n![spx](https://user-images.githubusercontent.com/121948670/211181770-08c6039c-740f-4af5-8be5-dc5f110d27f4.png)\r\n"
+    }
+  ],
+  "changelog": "Change Log\n===========\n\n1.1.0\n-----\nFeatures:\n- New price repair: capital gains double-counting #2667\nFixes:\n- Fix Saudi Arabia MIC Code #2665 @salsugair\n- Add config to __all__ #2673 @kbluck\n- Fix Python 3.9 compatibility regression in calendars.py #2674 @orionnelson\n- Improve stock-split repair false-positives #2668\n- Docs for capital-gains repair; Fix warnings in price-repair 27cb8aa\nAlready in main:\n- Upgrade to Pandas 3.0 (Fixes #2679) #2683\n\n1.0\n---\nyfinance been stable a long time now, time to grow up\n\nNo breaking changes, but some deprecation warnings.\n\nFeatures:\n- New config class yf.config / Improve exception handling #2524\n- Feature: Earning Calendar (& other calendars) #2615 @ianmihura\n- Add optional retry mechanism for transient network errors #2627 @axisrow\nFixes:\n- 'Industry' column names #2613 @danchev\n- Correct 30m interval alignment and filtering for NSE/early-open markets #2642 @biplavbarua\n- Screener's sector industry mapping #2648 @ericpien\n- Set period default to None in multi #2650 @evanreynolds9\n- price-div-repair dropping NaN rows #2651\n- Block curl_cffi version 0.14 #2653\n\n\n0.2.66\n------\nScreener: add Swiss exchange and industry field\nSupport MIC #2579\nFixes:\n- parse epoch dt #2573\n- earnings_dates #2591\n- merge intraday prices with divs/splits #2595\n- exceptions missing detail #2599\n\n0.2.65\n------\nFinancials: ensure dtype float #2563\nPrices: fix handling arguments start/end/period #2561 #2562\nPrice repair: when changing FX, update metadata #2558\n\n0.2.64\n------\nPrices:\n- handle dividends with FX, convert if repair=True  #2549\n- fix 'period' arg when start or end set  #2550\nearnings_dates: handle 'Event Type' properly  #2555\n\n0.2.63\n------\nFix download(ISIN)  # 2531\n\n0.2.62\n------\nFix prices 'period=max' sometimes failing  # 2509\nISIN cache  #2516\nProxy:\n- fix false 'proxy deprecated' messages\n- fix ISIN + proxy  #2514\n- replace print_once with warnings  #2523\nError handling:\n- detect rate-limit during crumb fetch  #2491\n- replace requests.HTTPError with curl_cffi\n\n0.2.61\n------\nFix ALL type hints in websocket #2493\n\n0.2.60\n------\nFix cookie reuse, and handle DNS blocking fc.yahoo.com #2483\nFixes for websocket:\n- relax protobuf version #2485\n- increase websockets version #2485\n- fix type hints #2488\nFix predefined screen offset #2440\n\n0.2.59\n------\nFix the fix for rate-limit #2452\nFeature: live price data websocket #2201\n\n0.2.58\n------\nFix false rate-limit problem #2430\nFix predefined screen size/count #2425\n\n0.2.57\n------\nFix proxy msg & pass-thru #2418\n\n0.2.56\n------\nFeatures:\n- Ticker lookups #2364\n- Config #2391\nFixes:\n- converting end epoch to localized dt #2378\n- info IndexError #2382\n- AttributeError: module 'requests.cookies' has no attribute 'update' #2388\n- fix_Yahoo_returning_live_separate() #2389\n\n0.2.55\n------\nFeatures\n- TTM financials #2321\nFixes\n- info IndexError #2354\n- earnings dates TZ #2366\n- price repair tweaks & fixes #2368\n- history caching #2345\n- backup fetch TZ from info #2369\nMaintenance\n- log user agent #2326\n\n0.2.54\n------\nHotfix user-agent #2277\n\n0.2.53\n------\nFixes:\n- Fix: Failed to parse holders JSON data  #2234\n- Fix: Bad data in Holders #2244\n- Stop CSRF-cookie-fetch fail killing yfinance #2249\n- Fix Market Docs #2250\n- Fix: Broken \"See also\" links in documentation #2253\n- Fix: Interval check and error message formatting in multi.py #2256\nImprove:\n- Add pre- / post-stock prices (and other useful information) #2212\n- Warn user when use download() without specifying auto_adjust #2230\n- Refactor: Earnings Dates – Switch to API Fetching #2247\n- Improve prices div repair #2260\nMaintenance:\n- Add GitHub Actions workflow and fix failing tests #2233\n\n0.2.52\n------\nFeatures:\n- Improve Screener & docs #2207\n- Add Market summary & status #2175\n- Support custom period in Ticker.history() #2192\n- raise YfRateLimitError if rate limited #2108\n- add more options to Search #2191\nFixes:\n- remove hardcoded keys in Analysis #2194\n- handle Yahoo changed Search response #2202\nMaintenance:\n- add optional dependencies to requirements.txt #2199\n\n0.2.51\n------\nFeatures:\n- Screener tweaks #2168\n- Search #2160\n- get_news() expose count #2173\nFixes:\n- earnings_dates #2169\n\n0.2.50\n------\nFixes:\n- price repair #2111 #2139\n- download() appearance 2109\n- isin() error #2099\n- growth_estimates #2127\nAlso new docs #2132\n\n0.2.49\n------\nFix prices-clean rarely discarding good data #2122\n\n0.2.47 and 0.2.48\n-----------------\nAdd yf.download(multi_level_index)\n\n0.2.46\n------\nFix regression in 0.2.45 #2094\n\n0.2.45\n------\nFeatures:\n- Screener #2066 @ericpien\nFixes\n- Tickers keyerror #2068 @antoniouaa\n- IndexError in some history() debug messages #2087\n- improve dividend repair #2090\nMaintenance\n- fix unit tests contextual imports #2067\n- fix typos #2072 @algonell\n- add Pyright type checking #2059 @marco-carvalho\n\n0.2.44\n------\nFeatures:\n- fetch funds #2041\n- fetch sector & industry #2058\nFixes:\n- improve dividend repair #2062\n\n0.2.43\n------\nFix price-repair bug introduced in 0.2.42 #2036\n\n0.2.42\n------\nFeatures:\n- fetch SEC filings #2009\n- fetch analysis #2023 @Fidasek009\n- price repair extended to dividends & adjust #2031\nFixes:\n- fix error on empty options chain #1995 @stevenbischoff\n- use dict.get() to safely access key in Holders #2013 @ericpien\n- fix datetime conversion with mixed timezones when ignore_tz is False #2016 @mreiche\n- handle faulty response object when getting news. #2021 @ericpien\nMaintenance:\n- prices: improve exceptions and logging #2000\n\n0.2.41\n------\nImprovements:\n- add keys to financials #1965 #1985\n- fetch Sustainability #1959\n- improve price-repair-zeroes #1990\nFixes (prices):\n- fetching when period='max' #1967\n- metadata: Fix '1wk is invalid' & repeated calls #1970\n- Pandas warnings #1955 #1981\n- price repair syntax errors #1989\nMaintenance:\n- deprecate Ticker.earnings #1977\n\n0.2.40\n------\nFix typo in 0.2.39 c7af213\n\n0.2.39\n------\nFixes:\n- Fix switching session from/to requests_cache #1930\nPrice repair:\n- Fix potential for price repair to discard price=0 rows #1874\n- Don't price-repair FX volume=0, is normal #1920\n- Improve 'sudden change' repair for splits & currency  #1931\nInformation:\n- Fix help(yf.download) not showing the information about the function #1913 @vittoboa\n- Add more specific error throwing based on PR 1918 #1928 @elibroftw @marcofognog\nMaintenance:\n- Replace dead 'appdirs' package with 'platformdirs' #1896\n- Deprecate 'pandas_datareader', remove a deprecated argument #1897\n- Fix: datetime.datetime.utcnow() is deprecated ... #1922\n\n0.2.38\n------\nFix holders & insiders #1908\n\n0.2.37\n------\nSmall fixes:\n- Fix Pandas warnings #1838 #1844\n- Fix price repair bug, typos, refactor #1866 #1865 #1849\n- Stop disabling logging #1841\n\n0.2.36\n------\nSmall fixes:\n- Update README.md for better copy-ability  #1823 \n- Name download() column levels  #1795 \n- Fix history(keepna=False) when repair=True  #1824 \n- Replace empty list with empty pd.Series  #1724 \n- Handle peewee with old sqlite  #1827 \n- Fix JSON error handling  #1830 #1833\n\n0.2.35\n------\nInternal fixes for 0.2.34\n\n0.2.34\n------\nFeatures:\n- Add Recommendations Trend Summary #1754\n- Add Recommendation upgrades & downgrades #1773\n- Add Insider Roster & Transactions #1772\n- Moved download() progress bar to STDERR #1776\n- PIP optional dependencies #1771\n- Set sensible min versions for optional 'nospam' reqs #1807\nFixes\n- Fix download() DatetimeIndex on invalid symbols #1779\n- Fix invalid date entering cache DB #1796\n- Fix Ticker.calendar fetch #1790\n- Fixed adding complementary to info #1774\n- Ticker.earnings_dates: fix warning \"Value 'NaN' has dtype incompatible with float64\" #1810\n- Minor fixes for price repair and related tests #1768\n- Fix price repair div adjust #1798\n- Fix 'raise_errors' argument ignored in Ticker.history() #1806\nMaintenance\n- Fix regression: _get_ticker_tz() args were being swapped. Improve its unit test #1793\n- Refactor Ticker proxy #1711\n- Add Ruff linter checks #1756\n- Resolve Pandas FutureWarnings #1766\n\n0.2.33\n------\nCookie fixes:\n- fix backup strategy #1759\n- fix Ticker(ISIN) #1760\n\n0.2.32\n------\nAdd cookie & crumb to requests #1657\n\n0.2.31\n------\n- Fix TZ cache exception blocking import #1705 #1709\n- Fix merging pre-market events with intraday prices #1703\n\n0.2.30\n------\n- Fix OperationalError #1698\n\n0.2.29\n------\n- Fix pandas warning when retrieving quotes. #1672\n- Replace sqlite3 with peewee for 100% thread-safety #1675\n- Fix merging events with intraday prices #1684\n- Fix error when calling enable_debug_mode twice #1687\n- Price repair fixes #1688\n\n0.2.28\n------\n- Fix TypeError: 'FastInfo' object is not callable #1636\n- Improve & fix price repair #1633 #1660\n- option_chain() also return underlying data #1606\n\n0.2.27\n------\nBug fixes:\n- fix merging 1d-prices with out-of-range divs/splits #1635\n- fix multithread error 'tz already in cache' #1648\n\n0.2.26\n------\nProxy improvements\n- bug fixes #1371\n- security fix #1625\n\n0.2.25\n------\nFix single ISIN as ticker #1611\nFix 'Only 100 years allowed' error #1576\n\n0.2.24\n------\nFix info[] missing values #1603\n\n0.2.23\n------\nFix 'Unauthorized' error #1595\n\n0.2.22\n------\nFix unhandled 'sqlite3.DatabaseError' #1574\n\n0.2.21\n------\nFix financials tables #1568\nPrice repair update: fix Yahoo messing up dividend and split adjustments #1543\nFix logging behaviour #1562\nFix merge future div/split into prices #1567\n\n0.2.20\n------\nSwitch to `logging` module #1493 #1522 #1541\nPrice history:\n- optimise #1514\n- fixes #1523\n- fix TZ-cache corruption #1528\n\n0.2.18\n------\nFix 'fast_info' error '_np not found' #1496\nFix bug in timezone cache #1498\n\n0.2.17\n------\nFix prices error with Pandas 2.0 #1488\n\n0.2.16\n------\nFix 'fast_info deprecated' msg appearing at Ticker() init\n\n0.2.15\n------\nRestore missing Ticker.info keys #1480\n\n0.2.14\n------\nFix Ticker.info dict by fetching from API #1461\n\n0.2.13\n------\nPrice bug fixes:\n- fetch big-interval with Capital Gains #1455\n- merging dividends & splits with prices #1452\n\n0.2.12\n------\nDisable annoying 'backup decrypt' msg\n\n0.2.11\n------\nFix history_metadata accesses for unusual symbols #1411\n\n0.2.10\n------\nGeneral\n- allow using sqlite3 < 3.8.2 #1380\n- add another backup decrypt option #1379\nPrices\n- restore original download() timezone handling #1385\n- fix & improve price repair #1289 2a2928b 86d6acc\n- drop intraday intervals if in post-market but prepost=False #1311\nInfo\n- fast_info improvements:\n  - add camelCase keys, add dict functions values() & items() #1368\n  - fix fast_info[\"previousClose\"] #1383\n- catch TypeError Exception #1397\n\n0.2.9\n-----\n- Fix fast_info bugs #1362\n\n0.2.7\n-----\n- Fix Yahoo decryption, smarter this time #1353\n- Rename basic_info -> fast_info #1354\n\n0.2.6\n-----\n- Fix Ticker.basic_info lazy-loading #1342\n\n0.2.5\n-----\n- Fix Yahoo data decryption again #1336\n- New: Ticker.basic_info - faster Ticker.info #1317\n\n0.2.4\n-----\n- Fix Yahoo data decryption #1297\n- New feature: 'Ticker.get_shares_full()' #1301\n- Improve caching of financials data #1284\n- Restore download() original alignment behaviour #1283\n- Fix the database lock error in multithread download #1276\n\n0.2.3\n-----\n- Make financials API '_' use consistent\n\n0.2.2\n-----\n- Restore 'financials' attribute (map to 'income_stmt')\n\n0.2.1\n-----\nRelease!\n\n0.2.0rc5\n--------\n- Improve financials error handling #1243\n- Fix '100x price' repair #1244\n\n0.2.0rc4\n--------\n- Access to old financials tables via `get_income_stmt(legacy=True)`\n- Optimise scraping financials & fundamentals, 2x faster\n- Add 'capital gains' alongside dividends & splits for ETFs, and metadata available via `history_metadata`, plus a bunch of price fixes\nFor full list of changes see #1238\n\n0.2.0rc2\n--------\nFinancials\n- fix financials tables to match website  #1128 #1157\n- lru_cache to optimise web requests  #1147\nPrices\n- improve price repair  #1148\n- fix merging dividends/splits with day/week/monthly prices  #1161\n- fix the Yahoo DST fixes  #1143\n- improve bad/delisted ticker handling  #1140\nMisc\n- fix 'trailingPegRatio'  #1138\n- improve error handling  #1118\n\n0.2.0rc1\n--------\nJumping to 0.2 for this big update. 0.1.* will continue to receive bug-fixes\n- timezone cache performance massively improved. Thanks @fredrik-corneliusson #1113 #1112 #1109 #1105 #1099\n- price repair feature #1110\n- fix merging of dividends/splits with prices #1069 #1086 #1102\n- fix Yahoo returning latest price interval across 2 rows #1070\n- optional: raise errors as exceptions: raise_errors=True #1104\n- add proper unit tests #1069\n\n0.1.81\n------\n- Fix unhandled tz-cache exception #1107\n\n0.1.80\n------\n- Fix `download(ignore_tz=True)` for single ticker #1097\n- Fix rare case of error \"Cannot infer DST time\" #1100\n\n0.1.79\n------\n- Fix when Yahoo returns price=NaNs on dividend day\n\n0.1.78\n------\n- Fix download() when different timezones #1085\n\n0.1.77\n------\n- Fix user experience bug #1078\n\n0.1.75\n------\n- Fixed datetime-related issues: #1048\n- Add 'keepna' argument #1032\n- Speedup Ticker() creation #1042\n- Improve a bugfix #1033\n\n0.1.74\n------\n- Fixed bug introduced in 0.1.73 (sorry :/)\n\n0.1.73\n------\n- Merged several PR that fixed misc issues\n\n0.1.72\n------\n- Misc bugfixs\n\n0.1.71\n------\n- Added Tickers(…).news()\n- Return empty DF if YF missing earnings dates\n- Fix EPS % to 0->1\n- Fix timezone handling\n- Fix handling of missing data\n- Clean&format earnings_dates table\n- Add ``.get_earnings_dates()`` to retrieve earnings calendar\n- Added ``.get_earnings_history()`` to fetch earnings data\n\n0.1.70\n------\n- Bug fixed - Closes #937\n\n0.1.69\n------\n- Bug fixed - #920\n\n0.1.68\n------\n- Upgraded requests dependency\n- Removed Python 3.5 support\n\n0.1.67\n------\n- Added legal disclaimers to make sure people are aware that this library is not affiliated, endorsed, or vetted by Yahoo, Inc.\n\n0.1.66\n------\n- Merged PR to allow yfinance to be pickled\n\n0.1.65\n------\n- Merged PRs to fix some bugs\n- Added lookup by ISIN ``utils.get_all_by_isin(...)``, ``utils.get_ticker_by_isin(...)``, ``utils.get_info_by_isin(...)``, ``utils.get_news_by_isin(...)``\n- ``yf.Ticker``, ``yf.Tickers``, and ``yf.download`` will auto-detect ISINs and convert them to tickers\n- Propagating timeout parameter through code, setting request.get(timeout)\n- Adds ``Ticker.analysis`` and ``Ticker.get_analysis(...)``\n\n0.1.64\n------\n- Merged PRs to fix some bugs\n- Added ``Ticker.stats()`` method\n- Added ``Ticker.news`` property\n- Providing topHoldings for ETFs\n- Replaceed drop duplicate prices with indexes\n- Added pre-market price to ``Ticker.info``\n\n\n0.1.63\n------\n- Duplicates and missing rows cleanup\n\n0.1.62\n------\n- Added UserAgent to all requests (via ```utils.user_agent_headers```)\n\n0.1.61\n------\n- Switched to using ```query2.finance.yahoo.com```, which used HTTP/1.1\n\n0.1.60\n------\n- Gracefully fail on misc operations (options, auto/back adjustments, etc)\n- Added financial data to ```info()```\n- Using session headers\n- Get price even if open price not available\n- Argument added for silencing error printing\n- Merged PRs to fix some bugs\n\n0.1.59\n------\n- Added custom requests session instance support in holders\n\n0.1.58\n------\n- Allow specifying a custom requests session instance\n\n0.1.57\n------\n- Added Conversion rate hint using 'financialCurrency' property in earnings\n- Add important try+catch statements\n- Fixed issue with 1 hour interval\n- Merged PRs to fix some bugs\n- Fixed issue with special characters in tickers\n\n0.1.56\n------\n- Updated numpy version\n- Merged PRs to fix some bugs\n\n0.1.55\n------\n- Fixed institutional investors and mutual fund holders issue (#459)\n- Fix for UTC timestamps in options chains (#429)\n\n0.1.54\n------\n- ISIN lookup working with intl. tickers\n\n0.1.53\n------\n- Added ``Ticker.isin`` + ``Ticker.get_isin(...)``. This is still experimental. Do not rely on it for production.\n- Bug fixed: holders were always returning results for MSFT\n\n0.1.52\n------\n- Improved JSON regex parsing\n\n0.1.51\n------\n- Added holdings data (``Ticker.major_holders`` and ``Ticker.institutional_holders``)\n- Added logo url to ``Ticker.info``\n- Handling different date formats in fundamentals\n- Faster JSON parsing using regex\n- Trying to re-download JSON twice before giving up\n- Using ujson instead of json if installed\n- Fixed (more) ``ticker.info`` issues\n- Misc bugfixes\n\n0.1.50\n------\n- Fixed ``ticker.info`` issues\n- Handle sustainability index error\n- Added test script based on @GregoryMorse's pull request\n\n0.1.49\n------\n- Fixed ``elementwise comparison`` warning\n\n0.1.48\n------\n- Fixed issues related to non-publicly traded tickers (crypto, currency, etc)\n\n0.1.47\n------\n- Fixed options-related bug that was caused by code refactoring\n\n0.1.46\n------\n- Rerwote all fundamental-related methods, which now support quarterly financials, cashflow, balance sheets, and earnings, analysts recommendations, and earnings calendar data\n- Code refactoring\n\n0.1.45\n------\n- Added sustainability data/error handling for ETF/MF (by GregoryMorse)\n- Avoid rounding the values retrieved from Yahoo by default (by aglebov)\n- Added 'rename=True' for the namedtuple (raffieeey)\n\n0.1.44\n------\n- Improved ``Tickers`` module (see https://github.com/ranaroussi/yfinance/issues/86)\n- Misc bugfixes\n\n0.1.43\n------\n- Bugfixes\n\n0.1.42\n------\n- Fix data realignment when Yahoo returns with missing/malform data\n\n0.1.41\n------\n- Added methods for downloading option chain\n\n0.1.40\n------\n- Fixed issue related to threads when downloading many symbols\n- Fix issue relared to missing data\n\n0.1.39\n------\n- Added ``Ticker('XXX').financials``, ``Ticker('XXX').balance_sheet``, and ``Ticker('XXX').cashflow``\n- Proxy can be used when downloading actions\n\n0.1.38\n------\n- Making sure tickers are always uppercase\n- Added Tickers to ``__all__``\n- Updated readme to reflect current library structure\n\n0.1.37\n------\n- Overriding old ``pandas_datareader.data.DataReader`` when calling ``pdr_override()``\n- ``Tickers()`` returns a named tuple of ``Ticker()`` objects\n\n0.1.36\n------\n- Package renamed to ``yfinance``\n- Added option to specify proxy server\n\n0.1.35\n------\n- Updated requirements\n\n0.1.34\n------\n- Intercept yahoo \"site down\" message\n- Better period handling\n- Threading is True by default\n\n0.1.33\n------\n- Better error handling\n\n0.1.32\n------\n- Better error handling\n- Updated min. versions for requirements\n\n0.1.31\n------\n- Include ticker in error message if error is raised\n\n0.1.30\n------\n- Fixed Yahoo!'s 30m bars being returned as 60m/15m\n\n0.1.29\n------\n- Fixed issue with Pandas \"DataFrame constructor not properly called!\"\n- If ``threads`` is set to True, it will default to number of tickers (max = @ of CPU cores)\n\n0.1.28\n------\n- Threading defaults to ``False``\n\n0.1.27\n------\n- Threading is back :)\n\n0.1.26\n------\n- Fixed weird bug with Yahoo!, which is returning 60m interval when requesting for 30m interval, by requesting 15m interval and resampling the returned data\n- ``Ticker.history()`` auto-adjusts data by default\n\n0.1.21 - 0.1.25\n------\n- Bugfixs\n\n0.1.2\n------\n- Round prices based on metadata decimals\n\n0.1.1\n------\n- Setting Volume colume as np.int64 dtype to avoid integer overflow on Windows\n\n0.1.0\n-------\n- Works with v8 API\n- Introduced Ticker module\n- Complete re-write of the entire code\n- Skipped a bunch of version :)\n\n0.0.22\n-------\n- Deprecated Panel support\n\n0.0.21\n-------\n- Code cleanup\n\n0.0.20\n-------\n- Fixed issue with progress bar (issue #42)\n\n0.0.19\n-------\n- Misc bugfixes\n\n0.0.18\n-------\n- Minor Bugfixes\n- Added deprecation warning for future versions regarding auto-overriding pandas_datareader\n\n0.0.17\n-------\n- Handles duplicate index\n\n0.0.16\n-------\n- Progress bar bugfix\n\n0.0.15\n-------\n- Bugfix (closing issue #11)\n\n0.0.14\n-------\n- Added support for Python 2.7\n- Confirming valid data returned before adding it to ``_DFS_``\n\n0.0.13\n-------\n- Removed debugging code\n\n0.0.12\n-------\n- Minor bug fix (closing #6)\n\n0.0.11\n-------\n- Downloads ONLY dividend and stock splits data using ``actions='only'``)\n\n0.0.10\n-------\n- Downloads dividend and stock splits data (use ``actions=True``)\n\n0.0.9\n-------\n- Add ``threads`` parameter to ``download()`` (# of threads to use)\n\n0.0.8\n-------\n- Removed 5 second wait for every failed fetch\n- Reduced TTL for Yahoo!'s cookie\n- Keeps track of failed downloads and tries to re-download all failed downloads one more time before giving up\n- Added progress bar (can be turned off using ``progress=False``)\n\n0.0.7\n-------\n- ``pandas_datareader`` is optional (can be called via ``download()`` or via ``pdr.get_data_yahoo()``)\n- Tries to re-fetch Yahoo cookie in case of timeout/error\n\n0.0.6\n-------\n- Forcing index to be of datetime type\n\n0.0.5\n-------\n- Works using ``requests`` = no need for Selenium, PyVirtualDisplay, or Chrome Driver\n\n0.0.4\n-------\n- Removed ALL debugging code :)\n\n0.0.3\n-------\n- Removed debugging code\n\n0.0.2\n-------\n- Option to explicitly specify the location of the Chrome driver\n\n0.0.1\n-------\n- Initial release (alpha)\n",
+  "releases": [
+    {
+      "tag_name": "1.1.0",
+      "name": "1.1.0",
+      "body": "Price repair:\r\n- new: fix capital-gains double-counting\r\n- fewer stock-split false positives\r\n\r\nVarious small fixes.\r\n\r\nFull changelog #2682\r\n\r\nThanks @salsugair @kbluck @orionnelson @ctasada ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2026-01-24T16:01:54+00:00",
+      "published_at": "2026-01-24T16:07:15+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/1.1.0",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/1.1.0",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/1.1.0"
+    },
+    {
+      "tag_name": "1.0",
+      "name": "1.0",
+      "body": "yfinance been stable a long time now, time to graduate to version 1.0 🎉 \r\n\r\nNo breaking changes, but some deprecation warnings for the new config method https://ranaroussi.github.io/yfinance/advanced/config.html\r\n\r\nVarious fixes.\r\n\r\nThanks @ianmihura @axisrow @danchev @biplavbarua @ericpien @evanreynolds9 \r\n\r\nFull changelog #2637",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-12-22T18:09:22+00:00",
+      "published_at": "2025-12-22T18:15:56+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/1.0",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/1.0",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/1.0"
+    },
+    {
+      "tag_name": "0.2.66",
+      "name": "0.2.66",
+      "body": "Screener: add Swiss exchange and industry field\r\n\r\nSupport MIC #2579\r\n\r\nFixes:\r\n- parse epoch dt #2573\r\n- earnings_dates #2591\r\n- merge intraday prices with divs/splits #2595\r\n- exceptions missing detail #2599\r\n\r\nThanks @mxdev88 @jdmcclain47 @hjlgood @Phil997 ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-09-17T11:20:05+00:00",
+      "published_at": "2025-09-17T11:22:15+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.66",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.66",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.66"
+    },
+    {
+      "tag_name": "0.2.65",
+      "name": "0.2.65",
+      "body": "- Prices: fix handling arguments `start/end/period`\r\n- Financials: ensure dtype float\r\n- Price repair: update metadata when changing FX",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-07-06T16:18:39+00:00",
+      "published_at": "2025-07-06T16:19:57+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.65",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.65",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.65"
+    },
+    {
+      "tag_name": "0.2.64",
+      "name": "0.2.64",
+      "body": "`earnings_dates`: new column `Event Type`  #2555\r\n\r\nPrices fixes:\r\n- handle dividends with currency  #2549\r\n- handle `period` when `start/end` also set  #2550",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-06-27T16:15:06+00:00",
+      "published_at": "2025-06-27T16:17:11+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.64",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.64",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.64"
+    },
+    {
+      "tag_name": "0.2.63",
+      "name": "0.2.63",
+      "body": "Fix `download()`+ISIN",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-06-12T08:41:44+00:00",
+      "published_at": "2025-06-12T08:42:37+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.63",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.63",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.63"
+    },
+    {
+      "tag_name": "0.2.62",
+      "name": "0.2.62",
+      "body": "- Improve \"proxy deprecated\" messaging.\r\n- Fix ISIN+proxy. New ISIN cache.\r\n- Fix prices `period=max`.\r\n\r\nThanks @cole-st-john ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-06-08T15:08:37+00:00",
+      "published_at": "2025-06-08T15:11:22+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.62",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.62",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.62"
+    },
+    {
+      "tag_name": "0.2.61",
+      "name": "0.2.61",
+      "body": "Fix ALL type hints in websocket #2493",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-05-12T08:21:21+00:00",
+      "published_at": "2025-05-12T08:21:52+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.61",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.61",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.61"
+    },
+    {
+      "tag_name": "0.2.60",
+      "name": "0.2.60",
+      "body": "Big fixes:\r\n- cookie reuse, DNS blocking cookie fetch #2483\r\n- protobuf & websocket #2485 #2488\r\n\r\nLittle fixes:\r\n- predefined screen + `offset` #2440\r\n- deprecate `requests` #2487\r\n\r\nThanks @dhruvan2006 ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-05-11T20:06:20+00:00",
+      "published_at": "2025-05-11T20:11:59+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.60",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.60",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.60"
+    },
+    {
+      "tag_name": "0.2.59",
+      "name": "0.2.59",
+      "body": "Stop overriding `curl_cffi` user-agent - helps with rate-limit #2450\r\n\r\n**EDIT: new feature: [live data via websocket](https://ranaroussi.github.io/yfinance/reference/yfinance.websocket.html)** - forgot to announce",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-05-07T08:45:35+00:00",
+      "published_at": "2025-05-07T08:46:54+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.59",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.59",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.59"
+    },
+    {
+      "tag_name": "0.2.58",
+      "name": "0.2.58",
+      "body": "Fixes:\r\n- switch to `curl_cffi` session to fix false rate-limit errors #2430 [ [reason = TLS fingerprinting](https://github.com/ranaroussi/yfinance/issues/2422#issuecomment-2840759533) ]\r\n- predefined screen arg count/size #2425\r\n\r\nThanks @bretsky @R5dan ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-05-02T22:18:26+00:00",
+      "published_at": "2025-05-02T22:20:43+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.58",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.58",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.58"
+    },
+    {
+      "tag_name": "0.2.57",
+      "name": "0.2.57",
+      "body": "Fix proxy msg & pass-through #2418",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-04-28T20:54:13+00:00",
+      "published_at": "2025-04-28T20:55:06+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.57",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.57",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.57"
+    },
+    {
+      "tag_name": "0.2.56",
+      "name": "0.2.56",
+      "body": "Features:\r\n- `yf.Lookup`\r\n- `yf.set_config()`\r\n\r\nFixes: `info` fetch, ISIN, prices missing last row, prices NonExistentTimeError\r\n\r\nFull changelog #2410\r\n\r\nThanks @dhruvan2006  @JanMkl \r\n",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-04-23T21:20:32+00:00",
+      "published_at": "2025-04-23T21:26:14+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.56",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.56",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.56"
+    },
+    {
+      "tag_name": "0.2.55",
+      "name": "0.2.55",
+      "body": "New feature: fetch TTM financials\r\n\r\nFixes:\r\n- earnings dates\r\n- price repair\r\n- info IndexError\r\n- get_splits|dividends|capital_gains\r\n\r\nThanks @JanMkl @dhruvan2006\r\n\r\nFull changelog: #2372",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-03-20T20:31:28+00:00",
+      "published_at": "2025-03-20T20:42:31+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.55",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.55",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.55"
+    },
+    {
+      "tag_name": "0.2.54",
+      "name": "0.2.54",
+      "body": "Hotfix fetch error #2277 thanks @dhruvan2006 ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-02-18T22:16:14+00:00",
+      "published_at": "2025-02-18T22:19:03+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.54",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.54",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.54"
+    },
+    {
+      "tag_name": "0.2.53",
+      "name": "0.2.53",
+      "body": "Main changes:\r\n- fixes for `Ticker.*_holders`\r\n- add pre- and post-market data to `Ticker.info`\r\n- improve prices dividend repair\r\n\r\nThanks @dhruvan2006 @R5dan @ocp1006 \r\n\r\nFull changelog #2264",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-02-15T18:16:37+00:00",
+      "published_at": "2025-02-15T18:20:45+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.53",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.53",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.53"
+    },
+    {
+      "tag_name": "0.2.52",
+      "name": "0.2.52",
+      "body": "Features:\r\n- Improve Screener & docs #2207\r\n- Add `yf.Market` summary & status #2175\r\n- Support custom period in `Ticker.history` #2192\r\n- raise `YfRateLimitError` if rate limited #2108\r\n- add more options to `yf.Search` #2191\r\n\r\nFixes:\r\n- remove hardcoded keys in Analysis #2194\r\n- handle Yahoo changed Search response #2202\r\n\r\nThanks @dhruvan2006 and @R5dan ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2025-01-18T16:14:36+00:00",
+      "published_at": "2025-01-18T16:22:59+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.52",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.52",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.52"
+    },
+    {
+      "tag_name": "0.2.51",
+      "name": "0.2.51",
+      "body": "Features:\r\n- add `yf.Search` #2160\r\n- improve `yf.Screener` and `Ticker.get_news()` #2168 #2173\r\n\r\nFixes and tweaks:\r\n- Fix `Ticker.get_earnings_dates` #2169\r\n- Change `download` argument `auto_adjust` to default True, to match `Ticker.history` #2147\r\n\r\nThanks @hjlgood @ericpien @dhruvan2006 ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-12-19T22:46:16+00:00",
+      "published_at": "2024-12-19T22:51:36+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.51",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.51",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.51"
+    },
+    {
+      "tag_name": "0.2.50",
+      "name": "0.2.50",
+      "body": "Fixes:\r\n- price repair #2111 #2139\r\n- `download()` index #2109\r\n- `isin()` error #2099\r\n- `growth_estimates` #2127\r\n\r\nNew documentation website: https://ranaroussi.github.io/yfinance/index.html\r\n\r\nThanks @ericpien @DamienDuv ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-11-19T21:41:42+00:00",
+      "published_at": "2024-11-19T21:43:53+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.50",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.50",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.50"
+    },
+    {
+      "tag_name": "0.2.49",
+      "name": "0.2.49",
+      "body": "Fix prices-clean rarely discarding good data #2122",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-11-10T21:37:06+00:00",
+      "published_at": "2024-11-10T21:38:29+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.49",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.49",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.49"
+    },
+    {
+      "tag_name": "0.2.48",
+      "name": "0.2.48",
+      "body": "Addresses #2100.\r\n\r\nAdded `multi_level_index` parameter to multi.py with a default value to `True`. If set to `False` and only one ticker is requested - the returned DataFrame will be single-level-index",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-10-25T18:02:07+00:00",
+      "published_at": "2024-10-25T18:02:53+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.48",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.48",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.48"
+    },
+    {
+      "tag_name": "0.2.47",
+      "name": "0.2.47",
+      "body": "Refactor multi.py to return single-level index when a single ticker is requested",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-10-25T10:34:13+00:00",
+      "published_at": "2024-10-25T10:35:10+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.47",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.47",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.47"
+    },
+    {
+      "tag_name": "0.2.46",
+      "name": "0.2.46",
+      "body": "Fix regression in 0.2.45 #2094 - thanks @FX196 ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-10-21T17:37:53+00:00",
+      "published_at": "2024-10-21T17:39:37+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.46",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.46",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.46"
+    },
+    {
+      "tag_name": "0.2.45",
+      "name": "0.2.45",
+      "body": "Feature: `yf.Screener` and `yf.EquityQuery` #2066 \r\n\r\nFixes:\r\n- `history()` IndexError and `download()` KeyError #2068 #2087\r\n- improve dividend repair #2090\r\n\r\nFull changelog: #2091\r\n\r\nContributors: @ericpien @antoniouaa @algonell @marco-carvalho",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-10-20T21:59:16+00:00",
+      "published_at": "2024-10-20T22:09:21+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.45",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.45",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.45"
+    },
+    {
+      "tag_name": "0.2.44",
+      "name": "0.2.44",
+      "body": "Features:\r\n- `yf.Ticker(X).funds_data` #2041\r\n- `yf.Sector(Y)` and `yf.Industry(Z)` #2058\r\n\r\nThanks @ericpien!\r\n\r\nFix: improve dividend repair #2062",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-09-30T18:57:57+00:00",
+      "published_at": "2024-09-30T19:02:14+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.44",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.44",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.44"
+    },
+    {
+      "tag_name": "0.2.43",
+      "name": "0.2.43",
+      "body": "Fix price-repair bug introduced in 0.2.42 #2036",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-08-24T20:37:58+00:00",
+      "published_at": "2024-08-24T20:39:27+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.43",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.43",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.43"
+    },
+    {
+      "tag_name": "0.2.42",
+      "name": "0.2.42",
+      "body": "Features:\r\n- fetch SEC filings & analysis\r\n- price repair extended to dividends & adjust\r\n\r\nFix fetch errors for: options, holders, download, news\r\n\r\nFull changelog: #2034\r\n\r\nContributors: @Fidasek009 @aaron-jencks @stevenbischoff @ericpien @mreiche",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-08-22T15:59:11+00:00",
+      "published_at": "2024-08-22T16:04:15+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.42",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.42",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.42"
+    },
+    {
+      "tag_name": "0.2.41",
+      "name": "0.2.41",
+      "body": "Improvements:\r\n- add some missing keys to financials\r\n- new: `Ticker.sustainability`\r\n- prices fetch: fixes, Pandas warnings, and improve repair\r\n- deprecate `Ticker.earnings` RIP\r\n\r\nFull changelog: #1971\r\n\r\nContributors: @MohamedAlaa201 @vittoboa @SnowCheetos @rhwvu @lp177",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-07-19T15:00:52+00:00",
+      "published_at": "2024-07-19T15:05:19+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.41",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.41",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.41"
+    },
+    {
+      "tag_name": "0.2.40",
+      "name": "0.2.40",
+      "body": "Fix typo in 0.2.39 #1942 ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-05-19T16:25:01+00:00",
+      "published_at": "2024-05-19T16:27:43+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.40",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.40",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.40"
+    },
+    {
+      "tag_name": "0.2.39",
+      "name": "0.2.39",
+      "body": "Maintenance + price repair improvements. Details in #1927\r\n\r\nThanks @vittoboa @elibroftw @marcofognog ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-05-19T14:14:45+00:00",
+      "published_at": "2024-05-19T14:16:37+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.39",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.39",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.39"
+    },
+    {
+      "tag_name": "0.2.38",
+      "name": "0.2.38",
+      "body": "Fix holders and insiders #1908 - thanks @vittoboa",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-04-16T21:18:37+00:00",
+      "published_at": "2024-04-16T21:20:22+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.38",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.38",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.38"
+    },
+    {
+      "tag_name": "0.2.37",
+      "name": "0.2.37",
+      "body": "Small fixes:\r\n- Fix Pandas warnings #1838 #1844\r\n- Fix price repair bug, typos, refactor #1866 #1865 #1849\r\n- Stop disabling logging #1841\r\n\r\nThanks @mreiche @Rogach @power-edge @cottrell ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-02-25T13:25:28+00:00",
+      "published_at": "2024-02-25T13:35:00+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.37",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.37",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.37"
+    },
+    {
+      "tag_name": "0.2.36",
+      "name": "0.2.36",
+      "body": "Small fixes:\r\n- Name `download()` column levels  #1795 \r\n- Fix `history(keepna=False)` when `repair=True`  #1824 \r\n- Handle `peewee` with old `sqlite`  #1827 \r\n- Minor: #1724 #1823 #1830 #1833\r\n\r\nThanks: @mreiche @amanlai @molpcs @ange-daumal ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-01-21T18:10:41+00:00",
+      "published_at": "2024-01-21T18:12:24+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.36",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.36",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.36"
+    },
+    {
+      "tag_name": "0.2.35",
+      "name": "0.2.35",
+      "body": "Fixes for 0.2.34: fix behaviour with invalid symbols & unit tests #1816",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-01-07T00:35:06+00:00",
+      "published_at": "2024-01-07T00:35:55+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.35",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.35",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.35"
+    },
+    {
+      "tag_name": "0.2.34",
+      "name": "0.2.34",
+      "body": "Lots of changes here, thanks everyone.\r\n\r\nFeatures:\r\n- Add Recommendations Trend Summary #1754 @bot-unit\r\n- Add Recommendation upgrades & downgrades #1773 @bot-unit\r\n- Add Insider Roster & Transactions #1772 @JuliaLWang8\r\n- Moved `download()` progress bar to STDERR #1776 @coskos-ops\r\n- PIP optional dependencies #1771 #1807 @JuliaLWang8\r\n\r\nFixes\r\n- Fix `download()` `DatetimeIndex` on invalid symbols #1779 @VishnuAkundi\r\n- Price repair fixes #1768 #1798\r\n- Fix `Ticker.calendar` fetch #1790 @bot-unit\r\n- Fix invalid date entering cache DB #1796\r\n- Fixed adding complementary to `Ticker.info` #1774 @coskos-ops\r\n- Fix `raise_errors` argument ignored in `Ticker.history()` #1806 @puntonim\r\n- `Ticker.earnings_dates`: fix warning `Value 'NaN' has dtype incompatible with float64` #1810 @Tejasweee\r\n\r\nMaintenance\r\n- Refactor Ticker proxy #1711 @rickturner2001\r\n- Add Ruff linter checks #1756 @marco-carvalho\r\n- Resolve Pandas FutureWarnings #1766 @JuliaLWang8",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2024-01-06T17:19:51+00:00",
+      "published_at": "2024-01-06T17:22:43+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.34",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.34",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.34"
+    },
+    {
+      "tag_name": "0.2.33",
+      "name": "0.2.33",
+      "body": "Cookie fixes:\r\n- fix backup strategy #1759 \r\n- fix `Ticker(ISIN)` #1760  - thanks @bot-unit",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-12-06T19:49:23+00:00",
+      "published_at": "2023-12-06T19:50:39+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.33",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.33",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.33"
+    },
+    {
+      "tag_name": "0.2.32",
+      "name": "0.2.32",
+      "body": "Add cookie & crumb to requests, fix various HTTP errors. #1657 \r\nThanks for big help from:\r\n@bot-unit\r\n@psychoz971\r\n@JShen123",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-11-18T12:56:06+00:00",
+      "published_at": "2023-11-18T12:58:00+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.32",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.32",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.32"
+    },
+    {
+      "tag_name": "0.2.31",
+      "name": "0.2.31",
+      "body": "Fix TZ cache exception blocking import #1705 #1709\r\nFix merging pre-market events with intraday prices #1703",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-10-04T21:03:24+00:00",
+      "published_at": "2023-10-04T21:05:40+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.31",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.31",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.31"
+    },
+    {
+      "tag_name": "0.2.31b2",
+      "name": "0.2.31b2",
+      "body": "## What's Changed\r\n* Finish TZ cache lazy-load #1709\r\n\r\n**Full Changelog**: https://github.com/ranaroussi/yfinance/compare/0.2.31b1...0.2.31b2",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2023-10-01T21:40:15+00:00",
+      "published_at": "2023-10-01T21:41:33+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.31b2",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.31b2",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.31b2"
+    },
+    {
+      "tag_name": "0.2.31b1",
+      "name": "0.2.31b1",
+      "body": "## What's Changed\r\n* Fix merging pre-market events with intraday prices #1703\r\n* Fix TZ cache exception blocking import #1705\r\n\r\n**Full Changelog**: https://github.com/ranaroussi/yfinance/compare/0.2.30...0.2.31b1",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2023-10-01T09:06:34+00:00",
+      "published_at": "2023-10-01T09:08:16+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.31b1",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.31b1",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.31b1"
+    },
+    {
+      "tag_name": "0.2.30",
+      "name": "0.2.30",
+      "body": "Fix `OperationalError` #1698",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-09-24T21:18:30+00:00",
+      "published_at": "2023-09-24T21:19:41+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.30",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.30",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.30"
+    },
+    {
+      "tag_name": "0.2.29",
+      "name": "0.2.29",
+      "body": "Fixes:\r\n- Fix pandas warning when retrieving quotes - thanks @difelice #1672\r\n- Replace sqlite3 with peewee for 100% thread-safety -  #1675\r\n- Fix merging events with intraday prices - #1684\r\n- Fix error when calling enable_debug_mode twice - thanks @arduinocc04 #1687\r\n- Price repair fixes #1688\r\n\r\n**Full Changelog**: https://github.com/ranaroussi/yfinance/compare/0.2.28...0.2.29",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-09-22T11:00:47+00:00",
+      "published_at": "2023-09-22T11:04:26+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.29",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.29",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.29"
+    },
+    {
+      "tag_name": "0.2.28",
+      "name": "0.2.28",
+      "body": "- Fix `TypeError: 'FastInfo' object is not callable` #1636\r\n- Improve & fix price repair #1633 #1660\r\n- `option_chain()` also return underlying data - thanks @DanielGoldfarb #1606",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-08-13T12:05:02+00:00",
+      "published_at": "2023-08-13T12:07:34+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.28",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.28",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.28"
+    },
+    {
+      "tag_name": "0.2.27",
+      "name": "0.2.27",
+      "body": "Bug fixes:\r\n- fix merging 1d-prices with out-of-range divs/splits #1635\r\n- fix multithread error 'tz already in cache' #1648",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-08-03T20:24:07+00:00",
+      "published_at": "2023-08-03T20:25:15+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.27",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.27",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.27"
+    },
+    {
+      "tag_name": "0.2.26",
+      "name": "0.2.26",
+      "body": "Proxy improvements\r\n- bug fixes #1371\r\n- security update - thanks @ricardoprins #1625",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-07-21T11:56:10+00:00",
+      "published_at": "2023-07-21T11:57:16+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.26",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.26",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.26"
+    },
+    {
+      "tag_name": "0.2.25",
+      "name": "0.2.25",
+      "body": "Fix single ISIN as ticker - thanks @ricardoprins #1611\r\nFix 'Only 100 years allowed' error - thanks @lucas03 #1576",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-07-18T12:45:55+00:00",
+      "published_at": "2023-07-18T12:47:25+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.25",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.25",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.25"
+    },
+    {
+      "tag_name": "0.2.24",
+      "name": "0.2.24",
+      "body": "Fix info[] missing values #1603",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-07-14T14:52:33+00:00",
+      "published_at": "2023-07-14T14:53:11+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.24",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.24",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.24"
+    },
+    {
+      "tag_name": "0.2.23",
+      "name": "0.2.23",
+      "body": "Fix 'Unauthorized' error - thanks @signifer-geo #1595",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-07-13T19:54:56+00:00",
+      "published_at": "2023-07-13T20:04:21+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.23",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.23",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.23"
+    },
+    {
+      "tag_name": "0.2.22",
+      "name": "0.2.22",
+      "body": " Fix unhandled `sqlite3.DatabaseError` #1574 ",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-06-24T18:42:18+00:00",
+      "published_at": "2023-06-24T18:43:39+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.22",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.22",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.22"
+    },
+    {
+      "tag_name": "0.2.21",
+      "name": "0.2.21",
+      "body": "Main changes:\r\n- fixed the 3 main financials tables - income statement, balance sheet, and cash flow #1568\r\n- price repair improved: fix Yahoo messing up dividend and split adjustments #1543\r\n\r\nMinor changes:\r\n- fix `logging` double-printing #1562\r\n- fix merging future dividend/split into prices #1567\r\n",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-06-21T22:15:37+00:00",
+      "published_at": "2023-06-21T22:19:14+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.21",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.21",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.21"
+    },
+    {
+      "tag_name": "0.2.20",
+      "name": "0.2.20",
+      "body": "Switch to `logging` module - thanks @flaviovs #1423 #1493 #1522 #1541\r\n\r\nPrice history:\r\n- add `session` argument to `download` - thanks @bveber #1547\r\n- optimise #1514\r\n- fixes #1523\r\n- fix TZ-cache corruption #1528",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-06-07T15:51:17+00:00",
+      "published_at": "2023-06-07T15:52:27+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.20",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.20",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.20"
+    },
+    {
+      "tag_name": "0.2.19b4",
+      "name": "0.2.19b4",
+      "body": "Bugfixes:\r\n* Corrupt tkr-tz-csv halting code #1528\r\n* Faulty `download` logging #1541\r\n\r\nPost feedback in Discussion: https://github.com/ranaroussi/yfinance/discussions/1516",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2023-05-25T10:09:31+00:00",
+      "published_at": "2023-05-25T10:12:12+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.19b4",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.19b4",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.19b4"
+    },
+    {
+      "tag_name": "0.2.19b3",
+      "name": "0.2.19b3",
+      "body": "Fixes:\r\n- improve logging messages #1522\r\n- price fixes #1523\r\n\r\nPost feedback in Discussion: https://github.com/ranaroussi/yfinance/discussions/1516",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2023-05-11T13:04:04+00:00",
+      "published_at": "2023-05-11T13:04:55+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.19b3",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.19b3",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.19b3"
+    },
+    {
+      "tag_name": "0.2.19b1",
+      "name": "0.2.19b1",
+      "body": "Changes:\r\n- Logging module #1493\r\n- optimise Ticker.history #1514\r\n\r\nFeedback wanted on switch to Logging module. See the updated README for howto: https://github.com/ranaroussi/yfinance/tree/dev#logging\r\n\r\nPost feedback in Discussion: https://github.com/ranaroussi/yfinance/discussions/1516",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2023-05-04T21:14:34+00:00",
+      "published_at": "2023-05-04T21:17:20+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.19b1",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.19b1",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.19b1"
+    },
+    {
+      "tag_name": "0.2.18",
+      "name": "0.2.18",
+      "body": "Bug fixes:\r\n- `fast_info` error \"_np not found\"  #1496\r\n- timezone cache  #1498",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-04-16T18:03:08+00:00",
+      "published_at": "2023-04-16T18:04:55+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.18",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.18",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.18"
+    },
+    {
+      "tag_name": "0.2.17",
+      "name": "0.2.17",
+      "body": "Fix prices error with Pandas 2.0 - thanks @steven9909 #1488",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-04-10T20:55:21+00:00",
+      "published_at": "2023-04-10T20:57:21+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.17",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.17",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.17"
+    },
+    {
+      "tag_name": "0.2.16",
+      "name": "0.2.16",
+      "body": "Restore missing `Ticker.info` keys - thanks @kennykos #1480",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-04-09T22:42:50+00:00",
+      "published_at": "2023-04-09T22:44:13+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.16",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.16",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.16"
+    },
+    {
+      "tag_name": "0.2.14",
+      "name": "0.2.14",
+      "body": "Fix `Ticker.info` dict by fetching from API (also faster than scraping) - thanks @qianyun210603 #1461",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-03-25T11:39:21+00:00",
+      "published_at": "2023-03-25T11:40:57+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.14",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.14",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.14"
+    },
+    {
+      "tag_name": "0.2.13",
+      "name": "0.2.13",
+      "body": "Price bug fixes:\r\n- fetching big intervals e.g. \"3mo\" with Capital Gains #1455 (thanks @mppics)\r\n- merging dividends & splits with prices #1452",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-03-21T18:56:32+00:00",
+      "published_at": "2023-03-21T18:57:58+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.13",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.13",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.13"
+    },
+    {
+      "tag_name": "0.2.12",
+      "name": "0.2.12",
+      "body": "Disable annoying 'backup decrypt' msg 6b8b0d5",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-02-16T12:01:25+00:00",
+      "published_at": "2023-02-16T12:03:08+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.12",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.12",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.12"
+    },
+    {
+      "tag_name": "0.2.11",
+      "name": "0.2.11",
+      "body": "Fix `history_metadata` accesses for unusual symbols - thanks @sdeibel #1411",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-02-10T16:59:20+00:00",
+      "published_at": "2023-02-10T16:59:57+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.11",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.11",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.11"
+    },
+    {
+      "tag_name": "0.2.10",
+      "name": "0.2.10",
+      "body": "General:\r\n- fix using sqlite3 < 3.8.2 #1380\r\n- add another backup decrypt option #1379\r\n\r\nPrices\r\n- restore original `download()` timezone handling #1385\r\n- fix & improve price repair #1289 2a2928b 86d6acc\r\n- drop intraday intervals if in post-market but `prepost=False` #1311\r\n\r\nInfo\r\n- `fast_info` improvements:\r\n  - add camelCase keys, add dict functions `values()` & `items()`  #1368\r\n  - fix `fast_info[\"previousClose\"]` #1383\r\n- catch `TypeError` exception #1397",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-02-07T22:05:17+00:00",
+      "published_at": "2023-02-07T22:08:00+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.10",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.10",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.10"
+    },
+    {
+      "tag_name": "0.2.10b3",
+      "name": "0.2.10b3",
+      "body": "- Restore original download() timezone handling #1385\r\n- Price repair bug fix 86d6acccf78432779fad2679e1775962618cdf8b\r\n- Add another backup decrypt option #1379\r\n- Catch TypeError Exception #1397",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2023-02-07T14:09:08+00:00",
+      "published_at": "2023-02-07T14:12:22+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.10b3",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.10b3",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.10b3"
+    },
+    {
+      "tag_name": "0.2.10b2",
+      "name": "0.2.10b2",
+      "body": "Fix parsing `history_metadata['tradingPeriods']` when empty.",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2023-02-01T13:31:54+00:00",
+      "published_at": "2023-02-01T13:33:11+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.10b2",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.10b2",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.10b2"
+    },
+    {
+      "tag_name": "0.2.10b1",
+      "name": "0.2.10b1",
+      "body": "0.2.10 beta 1\r\n\r\nChangelog:\r\n- Fix using `sqlite` < 3.8.2 #1380 \r\n- Drop price prepost intervals if `prepost=False` #1311 \r\n- Fix & improve price repair #1289 \r\n- `fast_info` improvements:\r\n  - add camelCase keys, add `dict` functions `values()` & `items()` #1368 \r\n  - fix `fast_info[\"previousClose\"]` #1383",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2023-01-31T22:12:11+00:00",
+      "published_at": "2023-01-31T22:12:55+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.10b1",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.10b1",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.10b1"
+    },
+    {
+      "tag_name": "0.2.9",
+      "name": "0.2.9",
+      "body": "Fix fast_info bugs #1362",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-01-26T22:21:46+00:00",
+      "published_at": "2023-01-26T22:22:07+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.9",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.9",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.9"
+    },
+    {
+      "tag_name": "0.2.7",
+      "name": "0.2.7",
+      "body": "- Fix Yahoo decryption, smarter this time #1353\r\n- Rename basic_info -> fast_info #1354",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-01-26T17:03:00+00:00",
+      "published_at": "2023-01-26T17:03:50+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.7",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.7",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.7"
+    },
+    {
+      "tag_name": "0.2.6",
+      "name": "0.2.6",
+      "body": "Fix Ticker.basic_info lazy-loading #1342",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-01-25T19:10:31+00:00",
+      "published_at": "2023-01-25T19:11:31+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.6",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.6",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.6"
+    },
+    {
+      "tag_name": "0.2.5",
+      "name": "0.2.5",
+      "body": "- Fix Yahoo data decryption again #1336\r\n- New: Ticker.basic_info - faster Ticker.info #1317",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-01-25T16:45:30+00:00",
+      "published_at": "2023-01-25T16:47:31+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.5",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.5",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.5"
+    },
+    {
+      "tag_name": "0.2.4",
+      "name": "0.2.4",
+      "body": "- Fix Yahoo data decryption #1297\r\n- New feature: 'Ticker.get_shares_full()' #1301\r\n- Improve caching of financials data #1284\r\n- Restore download() original alignment behaviour #1283\r\n- Fix the database lock error in multithread download #1276\r\n\r\n#1302",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2023-01-14T22:58:53+00:00",
+      "published_at": "2023-01-14T23:01:04+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.4",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.4",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.4"
+    },
+    {
+      "tag_name": "0.2.3",
+      "name": "0.2.3",
+      "body": "- Make financials API '_' use consistent (e.g. support both balance_sheet and balancesheet)",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-20T11:57:04+00:00",
+      "published_at": "2022-12-20T11:58:35+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.3",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.3",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.3"
+    },
+    {
+      "tag_name": "0.2.2",
+      "name": "0.2.2",
+      "body": "- Restore `financials` attribute (map to `income_stmt`)",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-20T11:33:04+00:00",
+      "published_at": "2022-12-20T11:34:55+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.2",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.2",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.2"
+    },
+    {
+      "tag_name": "0.1.96",
+      "name": "0.1.96",
+      "body": "- Fix info[] not caching for small % of tickers #1258",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-20T20:50:01+00:00",
+      "published_at": "2022-12-20T20:51:00+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.96",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.96",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.96"
+    },
+    {
+      "tag_name": "0.2.1",
+      "name": "0.2.1",
+      "body": "This is a major new release with some new features. The important summary is:\r\n- optimised scraping (thanks @fredrik-corneliusson)\r\n- financials tables match website (thanks @git-shogg\r\n- price data improvements: fix NaN rows, new repair feature, metadata available (see README)\r\n\r\nFor full list of changes see the pre-release notes:\r\n- [0.2.0rc1](https://github.com/ranaroussi/yfinance/releases/tag/0.2.0rc1)\r\n- [0.2.0rc2](https://github.com/ranaroussi/yfinance/releases/tag/0.2.0rc2)\r\n- [0.2.0rc4](https://github.com/ranaroussi/yfinance/releases/tag/0.2.0rc4)\r\n- [0.2.0rc5](https://github.com/ranaroussi/yfinance/releases/tag/0.2.0rc5)\r\n\r\n@ranaroussi Just FYI",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-19T23:19:42+00:00",
+      "published_at": "2022-12-19T23:20:44+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.1",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.1",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.1"
+    },
+    {
+      "tag_name": "0.1.95",
+      "name": "0.1.95",
+      "body": "Fix info[] bug #1257",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-19T21:46:58+00:00",
+      "published_at": "2022-12-19T21:47:54+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.95",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.95",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.95"
+    },
+    {
+      "tag_name": "0.1.94",
+      "name": "0.1.94",
+      "body": "Fix delisted ticker info[] access",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-19T11:17:51+00:00",
+      "published_at": "2022-12-19T11:19:02+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.94",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.94",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.94"
+    },
+    {
+      "tag_name": "0.1.93",
+      "name": "0.1.93",
+      "body": "Fix `Ticker.shares`",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-18T22:16:28+00:00",
+      "published_at": "2022-12-18T22:17:21+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.93",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.93",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.93"
+    },
+    {
+      "tag_name": "0.1.92",
+      "name": "0.1.92",
+      "body": "Decrypt the new Yahoo encryption #1255. Credits to @Rogach for the hard crypto work, and to @fredrik-corneliusson for porting to `cryptography`.",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-18T21:45:07+00:00",
+      "published_at": "2022-12-18T21:45:44+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.92",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.92",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.92"
+    },
+    {
+      "tag_name": "0.2.0rc5",
+      "name": "0.2.0rc5",
+      "body": "- Improve financials error handling #1243\r\n- Fix '100x price' repair #1244",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2022-12-16T16:27:46+00:00",
+      "published_at": "2022-12-16T16:28:34+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.0rc5",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.0rc5",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.0rc5"
+    },
+    {
+      "tag_name": "0.2.0rc4",
+      "name": "0.2.0rc4",
+      "body": "Major changes:\r\n\r\n- Access to old financials tables via `get_income_stmt(legacy=True)`\r\n- Optimise scraping financials & fundamentals, 2x faster\r\n- Add 'capital gains' alongside dividends & splits for ETFs, and metadata available via `history_metadata`, plus a bunch of price fixes\r\n\r\nFor full list of changes see #1238",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2022-12-13T22:12:23+00:00",
+      "published_at": "2022-12-13T22:13:25+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.0rc4",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.0rc4",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.0rc4"
+    },
+    {
+      "tag_name": "0.1.90",
+      "name": "0.1.90",
+      "body": "- Restore lxml requirement, increase minimum version #1237",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-13T15:36:36+00:00",
+      "published_at": "2022-12-13T15:37:34+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.90",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.90",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.90"
+    },
+    {
+      "tag_name": "0.1.89",
+      "name": "0.1.89",
+      "body": "- Remove unused incompatible dependency #1222\r\n- Fix minimum Pandas version #1230",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-12-12T22:06:28+00:00",
+      "published_at": "2022-12-12T22:07:07+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.89",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.89",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.89"
+    },
+    {
+      "tag_name": "0.1.87",
+      "name": "0.1.87",
+      "body": "- Fix localizing midnight when non-existent (DST) #1176\r\n- Fix thread deadlock in bpython #1163",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-11-16T12:38:10+00:00",
+      "published_at": "2022-11-16T12:44:44+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.87",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.87",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.87"
+    },
+    {
+      "tag_name": "0.1.86",
+      "name": "0.1.86",
+      "body": "- Fix 'trailingPegRatio' #1141\r\n- Improve handling delisted tickers #1142\r\n- Fix corrupt tkr-tz-csv halting code #1162\r\n- Change default start to 1900-01-01 #1170",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-11-14T12:49:43+00:00",
+      "published_at": "2022-11-14T12:51:10+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.86",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.86",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.86"
+    },
+    {
+      "tag_name": "0.2.0rc2",
+      "name": "0.2.0rc2",
+      "body": "### Financials\r\n- fix financials tables to match website  #1128 #1157\r\n- lru_cache to optimise web requests  #1147\r\n\r\n### Prices\r\n- improve price repair  #1148\r\n- fix merging dividends/splits with day/week/monthly prices  #1161\r\n- fix the Yahoo DST fixes  #1143\r\n- improve bad/delisted ticker handling  #1140\r\n\r\n### Misc\r\n- fix 'trailingPegRatio'  #1138\r\n- improve error handling  #1118",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2022-11-12T21:28:22+00:00",
+      "published_at": "2022-11-12T21:29:57+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.0rc2",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.0rc2",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.0rc2"
+    },
+    {
+      "tag_name": "0.1.85",
+      "name": "0.1.85",
+      "body": "Fix info['log_url'] #1062\r\nFix handling delisted ticker #1137",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-11-03T19:04:45+00:00",
+      "published_at": "2022-11-03T19:05:48+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.85",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.85",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.85"
+    },
+    {
+      "tag_name": "0.2.0rc1",
+      "name": "0.2.0rc1",
+      "body": "Jumping to 0.2 for this big update #1117. 0.1.* will continue to receive bug-fixes\r\n- timezone cache performance massively improved. Thanks @fredrik-corneliusson #1113 #1112 #1109 #1105 #1099\r\n- price repair feature #1110\r\n- fix merging of dividends/splits with prices #1069 #1086 #1102\r\n- fix Yahoo returning latest price interval across 2 rows #1070\r\n- optional: raise price errors as exceptions: `download(..., raise_errors=True)` #1104\r\n- add proper unit tests #1069",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2022-10-26T21:39:41+00:00",
+      "published_at": "2022-10-26T21:41:51+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.2.0rc1",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.2.0rc1",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.2.0rc1"
+    },
+    {
+      "tag_name": "0.1.84",
+      "name": "0.1.84",
+      "body": "- Make tz-cache thread-safe",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-10-25T23:12:29+00:00",
+      "published_at": "2022-10-25T23:15:41+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.84",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.84",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.84"
+    },
+    {
+      "tag_name": "0.1.83",
+      "name": "0.1.83",
+      "body": "Reduce spam-effect of tz-fetch",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-10-25T22:23:32+00:00",
+      "published_at": "2022-10-25T22:24:25+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.83",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.83",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.83"
+    },
+    {
+      "tag_name": "0.1.81",
+      "name": "0.1.81",
+      "body": "Fix unhandled tz-cache exception #1107",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-10-23T18:54:28+00:00",
+      "published_at": "2022-10-23T18:55:25+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.81",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.81",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.81"
+    },
+    {
+      "tag_name": "0.1.80",
+      "name": "0.1.80",
+      "body": "Fixes:\r\n- `download(ignore_tz=True)` for single ticker #1097\r\n- rare case of error \"Cannot infer DST time\" #1100",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-10-22T12:25:59+00:00",
+      "published_at": "2022-10-22T12:28:05+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.80",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.80",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.80"
+    },
+    {
+      "tag_name": "0.1.79",
+      "name": "0.1.79",
+      "body": "Fix when Yahoo returns price=NaNs on dividend day. Dividends were being lost. E.g. ticker \"BHP.AX\" on 1998-10-30.",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-10-18T19:07:40+00:00",
+      "published_at": "2022-10-18T19:15:02+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.79",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.79",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.79"
+    },
+    {
+      "tag_name": "0.1.78",
+      "name": "0.1.78",
+      "body": "Fix download() when different timezones #1085",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-10-18T11:53:22+00:00",
+      "published_at": "2022-10-18T11:55:56+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.78",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.78",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.78"
+    },
+    {
+      "tag_name": "0.1.77",
+      "name": "0.1.77",
+      "body": "Fix user experience bug introduced in 0.1.75 #1076",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-10-07T21:04:16+00:00",
+      "published_at": "2022-10-07T21:05:33+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.77",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.77",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.77"
+    },
+    {
+      "tag_name": "0.1.75",
+      "name": "0.1.75",
+      "body": "Thanks to @ValueRaider and @asafravid  - we have a new version! 🎉\r\n\r\n- [x] The big change is fixing datetime-related issues: #1048 \r\n- [x] add 'keepna' argument #1032 \r\n- [x] speedup Ticker() creation #1042 \r\n- [x] improve a bugfix #1033 \r\n\r\n[Discussion](https://github.com/ranaroussi/yfinance/discussions/1074#discussion-4443861)\r\n\r\nHuge thank you for @ValueRaider for this one!",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-10-04T11:09:19+00:00",
+      "published_at": "2022-10-04T11:10:44+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.75",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.75",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.75"
+    },
+    {
+      "tag_name": "0.1.74",
+      "name": "0.1.74",
+      "body": "Fixed bug introduced in 0.1.73",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-07-11T22:20:47+00:00",
+      "published_at": "2022-07-11T22:21:12+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.74",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.74",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.74"
+    },
+    {
+      "tag_name": "0.1.73",
+      "name": "0.1.73",
+      "body": "Merged several PR that fixed misc issues\r\n",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-07-11T11:16:00+00:00",
+      "published_at": "2022-07-11T11:16:19+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.73",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.73",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.73"
+    },
+    {
+      "tag_name": "0.1.72",
+      "name": "0.1.72",
+      "body": "bugfix",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-06-16T15:32:33+00:00",
+      "published_at": "2022-06-16T15:32:52+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.72",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.72",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.72"
+    },
+    {
+      "tag_name": "0.1.71",
+      "name": "0.1.71",
+      "body": "0.1.71\r\n- Added Tickers(…).news()\r\n- Return empty DF if YF missing earnings dates\r\n- Fix EPS % to 0->1\r\n- Fix timezone handling\r\n- Fix handling of missing data\r\n- Clean&format earnings_dates table\r\n- Add ``.get_earnings_dates()`` to retreive earnings calendar\r\n- Added ``.get_earnings_history()`` to fetch earnings data",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-06-16T15:24:41+00:00",
+      "published_at": "2022-06-16T15:25:00+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.71",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.71",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.71"
+    },
+    {
+      "tag_name": "0.1.70",
+      "name": "0.1.70",
+      "body": "Closes #937.",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-01-30T12:13:53+00:00",
+      "published_at": "2022-01-30T12:14:21+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.70",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.70",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.70"
+    },
+    {
+      "tag_name": "0.1.69",
+      "name": "0.1.69",
+      "body": "Bug fixed - #920",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2022-01-12T15:43:10+00:00",
+      "published_at": "2022-01-12T15:46:53+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.69",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.69",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.69"
+    },
+    {
+      "tag_name": "0.1.68",
+      "name": "0.0.68",
+      "body": "\r\n- Fixed `json.decoder.JSONDecodeError` using the latest `requests` library\r\n- Removed official support for Python 3.5 (only) due to lack of support for this version by the `requests` library",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2021-12-30T15:36:11+00:00",
+      "published_at": "2021-12-30T15:41:56+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.68",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.68",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.68"
+    },
+    {
+      "tag_name": "0.1.67",
+      "name": "0.1.67",
+      "body": "Added legal disclaimers to make sure people are aware that this library is not affiliated, endorsed, or vetted by Yahoo, Inc.",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2021-11-20T20:21:56+00:00",
+      "published_at": "2021-11-20T20:46:57+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.67",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.67",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.67"
+    },
+    {
+      "tag_name": "0.1.66",
+      "name": "0.1.66",
+      "body": "0.1.66\r\n- Merged PR to allow yfinance to be pickled\r\n- Added lookup by ISIN `utils.get_all_by_isin(...)`, `utils.get_ticker_by_isin(...)`, `utils.get_info_by_isin(...)`, `utils.get_news_by_isin(...)`\r\n- `yf.Ticker`, `yf.Tickers`, and `yf.download` will auto-detect ISINs and convert them to tickers\r\n- Propagating timeout parameter through code, setting `request.get(timeout)`\r\n- Adds Ticker.analysis and `Ticker.get_analysis(...)`\r\n",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2021-11-13T22:53:47+00:00",
+      "published_at": "2021-11-13T22:55:40+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.66",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.66",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.66"
+    },
+    {
+      "tag_name": "0.1.55",
+      "name": "Release 0.1.55",
+      "body": "- fixed institutional holders issue\r\n- other small fixes",
+      "draft": false,
+      "prerelease": false,
+      "created_at": "2020-09-25T12:47:40+00:00",
+      "published_at": "2020-10-05T11:26:34+00:00",
+      "url": "https://github.com/ranaroussi/yfinance/releases/tag/0.1.55",
+      "tarball_url": "https://api.github.com/repos/ranaroussi/yfinance/tarball/0.1.55",
+      "zipball_url": "https://api.github.com/repos/ranaroussi/yfinance/zipball/0.1.55"
+    }
+  ]
+}
