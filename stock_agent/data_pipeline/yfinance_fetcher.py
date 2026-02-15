@@ -3,9 +3,15 @@
 Covers tasks 1.2.2, 1.2.3, 1.2.5 in the development plan.
 
 Usage:
+    # 默认: MVP 股票池, 5 年数据
     python -m stock_agent.data_pipeline.yfinance_fetcher
+
+    # 指定 ticker 和 period
+    python -m stock_agent.data_pipeline.yfinance_fetcher --tickers AAPL MSFT --period 1y
+    python -m stock_agent.data_pipeline.yfinance_fetcher --tickers 0700.HK 9988.HK --period 3y
 """
 
+import argparse
 import asyncio
 import logging
 from datetime import datetime, timedelta
@@ -135,15 +141,24 @@ def _compute_pct_change(entities: list) -> list:
 # ---- Main Fetch Functions ----
 
 
-async def fetch_hk_daily_prices(period: str = "2y") -> None:
-    """Task 1.2.2: 获取港股日K线 (9988.HK, 0700.HK, 1024.HK)."""
-    settings = get_settings()
-    hk_tickers = settings.MVP_STOCK_UNIVERSE["HK"]
-    logger.info(f"📊 开始获取港股日K线: {hk_tickers}")
+async def fetch_hk_daily_prices(
+    tickers: list[str] | None = None,
+    period: str = "5y",
+) -> None:
+    """Task 1.2.2: 获取港股日K线.
+
+    Args:
+        tickers: 港股 ticker 列表, 为空时使用 MVP 股票池.
+        period: yfinance period 字符串, 如 '1y', '2y', '5y', 'max'.
+    """
+    if not tickers:
+        settings = get_settings()
+        tickers = settings.MVP_STOCK_UNIVERSE["HK"]
+    logger.info(f"📊 开始获取港股日K线: {tickers}, period={period}")
 
     async with get_session() as session:
         total_rows = 0
-        for ticker in hk_tickers:
+        for ticker in tickers:
             try:
                 logger.info(f"  → 获取 {ticker} ...")
                 yf_ticker = yf.Ticker(ticker)
@@ -169,15 +184,24 @@ async def fetch_hk_daily_prices(period: str = "2y") -> None:
         logger.info(f"📊 港股日K线获取完成, 共 {total_rows} 行")
 
 
-async def fetch_us_daily_prices(period: str = "2y") -> None:
-    """Task 1.2.3: 获取美股日K线 (AAPL, MSFT, NVDA, GOOG, AMZN, META, TSLA)."""
-    settings = get_settings()
-    us_tickers = settings.MVP_STOCK_UNIVERSE["US"]
-    logger.info(f"📊 开始获取美股日K线: {us_tickers}")
+async def fetch_us_daily_prices(
+    tickers: list[str] | None = None,
+    period: str = "5y",
+) -> None:
+    """Task 1.2.3: 获取美股日K线.
+
+    Args:
+        tickers: 美股 ticker 列表, 为空时使用 MVP 股票池.
+        period: yfinance period 字符串, 如 '1y', '2y', '5y', 'max'.
+    """
+    if not tickers:
+        settings = get_settings()
+        tickers = settings.MVP_STOCK_UNIVERSE["US"]
+    logger.info(f"📊 开始获取美股日K线: {tickers}, period={period}")
 
     async with get_session() as session:
         total_rows = 0
-        for ticker in us_tickers:
+        for ticker in tickers:
             try:
                 logger.info(f"  → 获取 {ticker} ...")
                 yf_ticker = yf.Ticker(ticker)
@@ -203,14 +227,19 @@ async def fetch_us_daily_prices(period: str = "2y") -> None:
         logger.info(f"📊 美股日K线获取完成, 共 {total_rows} 行")
 
 
-async def fetch_hk_basic_info() -> None:
-    """Task 1.2.5 (part 1): 获取港股基本信息."""
-    settings = get_settings()
-    hk_tickers = settings.MVP_STOCK_UNIVERSE["HK"]
-    logger.info(f"📋 开始获取港股基本信息: {hk_tickers}")
+async def fetch_hk_basic_info(tickers: list[str] | None = None) -> None:
+    """Task 1.2.5 (part 1): 获取港股基本信息.
+
+    Args:
+        tickers: 港股 ticker 列表, 为空时使用 MVP 股票池.
+    """
+    if not tickers:
+        settings = get_settings()
+        tickers = settings.MVP_STOCK_UNIVERSE["HK"]
+    logger.info(f"📋 开始获取港股基本信息: {tickers}")
 
     async with get_session() as session:
-        for ticker in hk_tickers:
+        for ticker in tickers:
             try:
                 logger.info(f"  → 获取 {ticker} 基本信息 ...")
                 yf_ticker = yf.Ticker(ticker)
@@ -232,14 +261,19 @@ async def fetch_hk_basic_info() -> None:
     logger.info("📋 港股基本信息获取完成")
 
 
-async def fetch_us_basic_info() -> None:
-    """Task 1.2.5 (part 2): 获取美股基本信息."""
-    settings = get_settings()
-    us_tickers = settings.MVP_STOCK_UNIVERSE["US"]
-    logger.info(f"📋 开始获取美股基本信息: {us_tickers}")
+async def fetch_us_basic_info(tickers: list[str] | None = None) -> None:
+    """Task 1.2.5 (part 2): 获取美股基本信息.
+
+    Args:
+        tickers: 美股 ticker 列表, 为空时使用 MVP 股票池.
+    """
+    if not tickers:
+        settings = get_settings()
+        tickers = settings.MVP_STOCK_UNIVERSE["US"]
+    logger.info(f"📋 开始获取美股基本信息: {tickers}")
 
     async with get_session() as session:
-        for ticker in us_tickers:
+        for ticker in tickers:
             try:
                 logger.info(f"  → 获取 {ticker} 基本信息 ...")
                 yf_ticker = yf.Ticker(ticker)
@@ -261,21 +295,55 @@ async def fetch_us_basic_info() -> None:
     logger.info("📋 美股基本信息获取完成")
 
 
-async def fetch_all_yfinance_data() -> None:
-    """运行所有 yfinance 数据获取任务."""
+async def fetch_all_yfinance_data(
+    tickers: list[str] | None = None,
+    period: str = "5y",
+) -> None:
+    """运行所有 yfinance 数据获取任务.
+
+    Args:
+        tickers: 指定 ticker 列表. 为空时使用 MVP 股票池.
+                 会自动按后缀分流: .HK → 港股, 其余 → 美股.
+        period: yfinance period 字符串, 默认 '5y'.
+    """
     logger.info("=" * 60)
-    logger.info("🚀 开始 yfinance 全量数据获取")
+    logger.info("🚀 开始 yfinance 数据获取")
     logger.info("=" * 60)
 
-    await fetch_hk_daily_prices()
-    await fetch_us_daily_prices()
-    await fetch_hk_basic_info()
-    await fetch_us_basic_info()
+    if tickers:
+        # 按后缀分流
+        hk = [t for t in tickers if t.upper().endswith(".HK")]
+        us = [t for t in tickers if not t.upper().endswith(".HK")]
+    else:
+        hk = None
+        us = None
+
+    await fetch_hk_daily_prices(tickers=hk, period=period)
+    await fetch_us_daily_prices(tickers=us, period=period)
+    await fetch_hk_basic_info(tickers=hk)
+    await fetch_us_basic_info(tickers=us)
 
     logger.info("=" * 60)
-    logger.info("🎉 yfinance 全量数据获取完成!")
+    logger.info("🎉 yfinance 数据获取完成!")
     logger.info("=" * 60)
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="yfinance 港股/美股数据获取")
+    parser.add_argument(
+        "--tickers",
+        nargs="+",
+        default=None,
+        help="指定 ticker 列表, 例如 AAPL MSFT 0700.HK. 为空时使用 MVP 股票池.",
+    )
+    parser.add_argument(
+        "--period",
+        default="5y",
+        help="yfinance 数据周期, 如 1y/2y/5y/max (默认: 5y)",
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    asyncio.run(fetch_all_yfinance_data())
+    args = _parse_args()
+    asyncio.run(fetch_all_yfinance_data(tickers=args.tickers, period=args.period))

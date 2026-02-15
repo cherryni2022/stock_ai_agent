@@ -19,15 +19,18 @@
 ## 快速命令
 
 ### 环境管理
+
+> **uv 路径**: `/Users/niwen/anaconda3/bin/uv` （不在默认 PATH 中，需使用完整路径）
+
 ```bash
 # 安装依赖
-uv sync
+/Users/niwen/anaconda3/bin/uv sync
 
 # 激活虚拟环境
 source .venv/bin/activate
 
 # 添加依赖
-uv add <package>
+/Users/niwen/anaconda3/bin/uv add <package>
 ```
 
 ### 代码质量
@@ -57,29 +60,54 @@ uvicorn stock_agent.main:app --reload --port 8000
 streamlit run stock_agent/frontend/app.py
 ```
 
+### 数据库初始化
+
+SQL 脚本位于 `scripts/db/`，详细说明见 `docs/database_init.md`。
+
+```bash
+# 首次初始化（在 Supabase SQL Editor 中按顺序执行）
+scripts/db/001_extensions.sql      # 启用 pgvector + uuid-ossp
+scripts/db/002_create_tables.sql   # 创建 38 张表
+scripts/db/003_create_indexes.sql  # 创建 B-tree + IVFFlat 索引
+
+# 清空数据（保留表结构）
+scripts/db/090_truncate_all.sql
+
+# 完全重建（删表 → 重新建表）
+scripts/db/091_drop_all.sql → 001 → 002 → 003
+```
+
 ### 数据管道（手动执行，按顺序）
 
 > [!IMPORTANT]
 > MVP 阶段不需要定时任务或自动调度。所有数据获取通过手动执行脚本完成。
 
 ```bash
-# 1. A 股数据获取（601127 赛力斯、688981 中芯国际）
-python -m data_pipeline.akshare_fetcher
+# 1. A 股数据获取（默认: MVP 股票池, 5 年数据）
+python -m stock_agent.data_pipeline.akshare_fetcher
 
-# 2. 港股/美股数据获取
-python -m data_pipeline.yfinance_fetcher
+# 指定 ticker 和 period
+python -m stock_agent.data_pipeline.akshare_fetcher --tickers 601127 --period 1y
+python -m stock_agent.data_pipeline.akshare_fetcher --tickers 601127 688981 --period 3y
+
+# 2. 港股/美股数据获取（默认: MVP 股票池, 5 年数据）
+python -m stock_agent.data_pipeline.yfinance_fetcher
+
+# 指定 ticker 和 period
+python -m stock_agent.data_pipeline.yfinance_fetcher --tickers AAPL MSFT --period 1y
+python -m stock_agent.data_pipeline.yfinance_fetcher --tickers 0700.HK 9988.HK --period 3y
 
 # 3. 技术指标计算（依赖上面两步）
-python -m data_pipeline.indicator_calculator
+python -m stock_agent.data_pipeline.indicator_calculator
 
 # 4. 新闻获取
-python -m data_pipeline.news_fetcher
+python -m stock_agent.data_pipeline.news_fetcher
 
 # 5. 新闻向量化入库
-python -m data_pipeline.embedding_pipeline
+python -m stock_agent.data_pipeline.embedding_pipeline
 
 # 6. SQL 示例向量化入库
-python -m data_pipeline.sql_examples_seeder
+python -m stock_agent.data_pipeline.sql_examples_seeder
 ```
 
 ---
@@ -407,6 +435,7 @@ stateDiagram-v2
 | **系统架构文档** | `docs/architecture.md` | C4 模型（上下文/容器/组件）、数据架构、通信架构（SSE）、LLM/Embedding Provider 抽象、部署架构、ADR |
 | **技术实现文档** | `docs/technical_design.md` | 配置管理、核心数据模型、数据库模型详解、Agent Graph 实现、工具实现、服务层、API 层、数据管道、Prompt 工程 |
 | **开发计划** | `docs/plan.md` | 6 Phase 开发路线图、各阶段任务清单、里程碑检查点、MVP 股票池 |
+| **数据库初始化** | `docs/database_init.md` | SQL 脚本说明、首次初始化/数据重置/完全重建流程、38 张表清单、FAQ |
 
 ---
 

@@ -52,9 +52,9 @@
 - [x] **1.3.1** 实现指标计算引擎 (pandas + ta 库) → `data_pipeline/indicator_calculator.py`
 - [x] **1.3.2** 计算 MACD / RSI / KDJ / 布林带 / 均线 → `indicator_calculator.py`
 - [x] **1.3.3** 计算 5 类策略信号 → `indicator_calculator.py`
-- [ ] **1.3.4** 全市场指标计算验证 ← *需要运行 `run_pipeline.py` 后验证各表有数据*
+- [x] **1.3.4** 全市场指标计算验证 ← *已运行 `run_pipeline` 并验证各表数据完整*
 
-> 🔧 **Phase 1.3 进行中**: 3/4 完成
+> ✅ **Phase 1.3 完成**: 2026-02-15
 
 ---
 
@@ -199,22 +199,21 @@
 | Phase 0 — 项目骨架 | 7 | 7 | 100% ✅ |
 | Phase 1.1 — Schema & Repository | 9 | 9 | 100% ✅ |
 | Phase 1.2 — 数据获取管道 | 6 | 6 | 100% ✅ |
-| Phase 1.3 — 技术指标计算 | 4 | 3 | 75% 🔧 |
+| Phase 1.3 — 技术指标计算 | 4 | 4 | 100% ✅ |
 | Phase 2 — 向量层 (Embedding & RAG) | 17 | 0 | 0% ⬜ |
 | Phase 3 — Agent 核心 | 28 | 0 | 0% ⬜ |
 | Phase 4 — API 层 | 8 | 0 | 0% ⬜ |
 | Phase 5 — 前端 | 6 | 0 | 0% ⬜ |
 | Phase 6 — 质量保障 & 部署 | 11 | 0 | 0% ⬜ |
-| **总计** | **96** | **25** | **26%** |
-
+| **总计** | **96** | **26** | **27%** |
 ---
 
 ## 下一步行动
 
-> 当前阻塞项: **1.3.4** (全市场指标计算验证) — 需要执行 `python -m stock_agent.data_pipeline.run_pipeline` 并在数据库中验证各表数据。
+> 当前阻塞项: 无
 
-**Phase 1 完成后，建议并行开发:**
-- **Phase 2.1** (Embedding 服务) — 不依赖实际数据，仅依赖 Schema 建表完成
-- **Phase 3.1** (LLM 服务层) — 不依赖数据层，可并行开发
-- **Phase 3.2** (Prompt 工程) — 纯模板开发，无外部依赖
-- **Phase 3.3** (状态定义) — 纯 Pydantic 模型定义，无外部依赖
+**Phase 1 已完成，建议并行开发:**
+- **Phase 2.1** (Embedding 服务) — 优先开发，为 RAG 奠定基础
+- **Phase 3.1** (LLM 服务层) — 核心基础设施
+- **Phase 3.2** (Prompt 工程) — 纯模板开发
+

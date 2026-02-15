@@ -3,11 +3,18 @@
 Covers tasks 1.2.1, 1.2.4 in the development plan.
 
 Usage:
+    # 默认: MVP 股票池, 5 年数据
     python -m stock_agent.data_pipeline.akshare_fetcher
+
+    # 指定 ticker 和 period
+    python -m stock_agent.data_pipeline.akshare_fetcher --tickers 601127 --period 1y
+    python -m stock_agent.data_pipeline.akshare_fetcher --tickers 601127 688981 --period 3y
 """
 
+import argparse
 import asyncio
 import logging
+import re
 from datetime import datetime, timedelta
 
 import akshare as ak
@@ -81,32 +88,65 @@ def _safe_int(val) -> int | None:
         return None
 
 
+# ---- Period Helpers ----
+
+_PERIOD_DAYS: dict[str, int] = {
+    "1y": 365,
+    "2y": 730,
+    "3y": 1095,
+    "5y": 1825,
+    "10y": 3650,
+}
+
+
+def _period_to_dates(period: str) -> tuple[str, str]:
+    """Convert period string like '5y' to (start_date, end_date) in 'YYYYMMDD' format."""
+    end = datetime.now()
+    end_str = end.strftime("%Y%m%d")
+
+    if period in _PERIOD_DAYS:
+        start = end - timedelta(days=_PERIOD_DAYS[period])
+    elif re.match(r"^\d+y$", period):
+        years = int(period[:-1])
+        start = end - timedelta(days=years * 365)
+    else:
+        # Fallback: treat as 5y
+        start = end - timedelta(days=1825)
+
+    return start.strftime("%Y%m%d"), end_str
+
+
 # ---- Main Fetch Functions ----
 
 
 async def fetch_a_share_daily_prices(
+    tickers: list[str] | None = None,
+    period: str = "5y",
     start_date: str | None = None,
     end_date: str | None = None,
 ) -> None:
-    """Task 1.2.1: 获取A股日K线 (601127, 688981).
+    """Task 1.2.1: 获取A股日K线.
 
     Args:
-        start_date: 起始日期, 格式 "YYYYMMDD". 默认 2 年前.
-        end_date: 结束日期, 格式 "YYYYMMDD". 默认当天.
+        tickers: A股 ticker 列表, 为空时使用 MVP 股票池.
+        period: 数据周期, 如 '1y', '2y', '5y'. 当 start_date/end_date 未指定时生效.
+        start_date: 起始日期, 格式 'YYYYMMDD'. 优先于 period.
+        end_date: 结束日期, 格式 'YYYYMMDD'. 优先于 period.
     """
-    settings = get_settings()
-    cn_tickers = settings.MVP_STOCK_UNIVERSE["CN"]
+    if not tickers:
+        settings = get_settings()
+        tickers = settings.MVP_STOCK_UNIVERSE["CN"]
 
-    if not end_date:
-        end_date = datetime.now().strftime("%Y%m%d")
-    if not start_date:
-        start_date = (datetime.now() - timedelta(days=730)).strftime("%Y%m%d")
+    if not start_date or not end_date:
+        computed_start, computed_end = _period_to_dates(period)
+        start_date = start_date or computed_start
+        end_date = end_date or computed_end
 
-    logger.info(f"📊 开始获取A股日K线: {cn_tickers} ({start_date} ~ {end_date})")
+    logger.info(f"📊 开始获取A股日K线: {tickers} ({start_date} ~ {end_date})")
 
     async with get_session() as session:
         total_rows = 0
-        for ticker in cn_tickers:
+        for ticker in tickers:
             try:
                 logger.info(f"  → 获取 {ticker} ...")
                 # akshare: stock_zh_a_hist 获取个股日K线
@@ -132,7 +172,7 @@ async def fetch_a_share_daily_prices(
                             stock_name = str(name_row.iloc[0]["value"])
                 except Exception:
                     pass
-                
+
                 entities = _akshare_daily_to_entities(df, ticker, stock_name)
 
                 session.add_all(entities)
@@ -147,14 +187,19 @@ async def fetch_a_share_daily_prices(
         logger.info(f"📊 A股日K线获取完成, 共 {total_rows} 行")
 
 
-async def fetch_a_share_basic_info() -> None:
-    """Task 1.2.4 (part 1): 获取A股基本信息 (akshare 个股信息)."""
-    settings = get_settings()
-    cn_tickers = settings.MVP_STOCK_UNIVERSE["CN"]
-    logger.info(f"📋 开始获取A股基本信息: {cn_tickers}")
+async def fetch_a_share_basic_info(tickers: list[str] | None = None) -> None:
+    """Task 1.2.4 (part 1): 获取A股基本信息 (akshare 个股信息).
+
+    Args:
+        tickers: A股 ticker 列表, 为空时使用 MVP 股票池.
+    """
+    if not tickers:
+        settings = get_settings()
+        tickers = settings.MVP_STOCK_UNIVERSE["CN"]
+    logger.info(f"📋 开始获取A股基本信息: {tickers}")
 
     async with get_session() as session:
-        for ticker in cn_tickers:
+        for ticker in tickers:
             try:
                 logger.info(f"  → 获取 {ticker} 基本信息 ...")
                 # akshare: stock_individual_info_em 获取个股基本信息
@@ -182,13 +227,13 @@ async def fetch_a_share_basic_info() -> None:
 
                 entity = StockBasicInfoDB(
                     ticker=ticker,
-                    stock_name=info_dict.get("股票简称", ""),
+                    stock_name=str(info_dict.get("股票简称", "")),
                     total_shares=_safe_float(info_dict.get("总股本", None)),
                     float_shares=_safe_float(info_dict.get("流通股", None)),
                     total_market_value=_safe_float(spot.get("总市值")) if spot is not None else None,
                     float_market_value=_safe_float(spot.get("流通市值")) if spot is not None else None,
-                    industry=info_dict.get("行业", ""),
-                    listing_date=info_dict.get("上市时间", ""),
+                    industry=str(info_dict.get("行业", "")),
+                    listing_date=str(info_dict.get("上市时间", "")),
                     latest_price=_safe_float(spot.get("最新价")) if spot is not None else None,
                 )
                 session.add(entity)
@@ -202,14 +247,19 @@ async def fetch_a_share_basic_info() -> None:
     logger.info("📋 A股基本信息获取完成")
 
 
-async def fetch_a_share_company_info() -> None:
-    """Task 1.2.4 (part 2): 获取A股公司信息 (详细)."""
-    settings = get_settings()
-    cn_tickers = settings.MVP_STOCK_UNIVERSE["CN"]
-    logger.info(f"📋 开始获取A股公司详细信息: {cn_tickers}")
+async def fetch_a_share_company_info(tickers: list[str] | None = None) -> None:
+    """Task 1.2.4 (part 2): 获取A股公司信息 (详细).
+
+    Args:
+        tickers: A股 ticker 列表, 为空时使用 MVP 股票池.
+    """
+    if not tickers:
+        settings = get_settings()
+        tickers = settings.MVP_STOCK_UNIVERSE["CN"]
+    logger.info(f"📋 开始获取A股公司详细信息: {tickers}")
 
     async with get_session() as session:
-        for ticker in cn_tickers:
+        for ticker in tickers:
             try:
                 logger.info(f"  → 获取 {ticker} 公司信息 ...")
                 df = ak.stock_individual_info_em(symbol=ticker)
@@ -224,12 +274,12 @@ async def fetch_a_share_company_info() -> None:
 
                 entity = StockCompanyInfoDB(
                     ticker=ticker,
-                    company_name=info_dict.get("股票简称", ""),
-                    english_name=info_dict.get("", ""),  # akshare may not have this
-                    a_share_abbreviation=info_dict.get("股票简称", ""),
-                    market=info_dict.get("上市市场", ""),
-                    industry=info_dict.get("行业", ""),
-                    listing_date=info_dict.get("上市时间", ""),
+                    company_name=str(info_dict.get("股票简称", "")),
+                    english_name=str(info_dict.get("", "")),  # akshare may not have this
+                    a_share_abbreviation=str(info_dict.get("股票简称", "")),
+                    market=str(info_dict.get("上市市场", "")),
+                    industry=str(info_dict.get("行业", "")),
+                    listing_date=str(info_dict.get("上市时间", "")),
                 )
                 session.add(entity)
                 await session.flush()
@@ -242,20 +292,45 @@ async def fetch_a_share_company_info() -> None:
     logger.info("📋 A股公司信息获取完成")
 
 
-async def fetch_all_akshare_data() -> None:
-    """运行所有 akshare 数据获取任务."""
+async def fetch_all_akshare_data(
+    tickers: list[str] | None = None,
+    period: str = "5y",
+) -> None:
+    """运行所有 akshare 数据获取任务.
+
+    Args:
+        tickers: A股 ticker 列表. 为空时使用 MVP 股票池.
+        period: 数据周期, 如 '1y', '2y', '5y'. 默认 '5y'.
+    """
     logger.info("=" * 60)
-    logger.info("🚀 开始 akshare 全量数据获取")
+    logger.info("🚀 开始 akshare 数据获取")
     logger.info("=" * 60)
 
-    await fetch_a_share_daily_prices()
-    await fetch_a_share_basic_info()
-    await fetch_a_share_company_info()
+    await fetch_a_share_daily_prices(tickers=tickers, period=period)
+    await fetch_a_share_basic_info(tickers=tickers)
+    await fetch_a_share_company_info(tickers=tickers)
 
     logger.info("=" * 60)
-    logger.info("🎉 akshare 全量数据获取完成!")
+    logger.info("🎉 akshare 数据获取完成!")
     logger.info("=" * 60)
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="akshare A股数据获取")
+    parser.add_argument(
+        "--tickers",
+        nargs="+",
+        default=None,
+        help="指定 A股 ticker 列表, 例如 601127 688981. 为空时使用 MVP 股票池.",
+    )
+    parser.add_argument(
+        "--period",
+        default="5y",
+        help="数据周期, 如 1y/2y/5y (默认: 5y)",
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    asyncio.run(fetch_all_akshare_data())
+    args = _parse_args()
+    asyncio.run(fetch_all_akshare_data(tickers=args.tickers, period=args.period))
