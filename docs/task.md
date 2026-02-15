@@ -61,16 +61,16 @@
 ## Phase 2: 向量层 — Embedding & RAG
 
 ### 2.1 Embedding 服务 (3 天)
-- [ ] **2.1.1** 实现 `EmbeddingProvider` 抽象接口 → `services/embedding.py`
-- [ ] **2.1.2** 实现 `OpenAIEmbedding` + `GeminiEmbedding` + `ZhipuEmbedding` 三个实现 → `services/embedding.py`
-- [ ] **2.1.3** 实现 `create_embedding_provider()` 工厂函数 (按 env 切换) → `services/embedding.py`
-- [ ] **2.1.4** 单元测试: 向量维度 / 批量 embed / 异常处理 → `tests/test_embedding.py`
+- [x] **2.1.1** 实现 `EmbeddingProvider` 抽象接口 → `services/embedding.py`
+- [x] **2.1.2** 实现 `OpenAIEmbedding` + `GeminiEmbedding` + `ZhipuEmbedding` 三个实现 → `services/embedding.py`
+- [x] **2.1.3** 实现 `create_embedding_provider()` 工厂函数 (按 env 切换) → `services/embedding.py`
+- [x] **2.1.4** 单元测试: 向量维度 / 批量 embed / 异常处理 → `tests/unit/test_embedding.py`
 
 ### 2.2 新闻获取 & 向量化 (4 天)
-- [ ] **2.2.1** A 股新闻获取 (akshare 个股新闻) → `data_pipeline/news_fetcher.py`
-- [ ] **2.2.2** 港股/美股新闻获取 (yfinance news) → `data_pipeline/news_fetcher.py`
-- [ ] **2.2.3** 实现文本分块 `chunk_text()` (~500 token/块, 50 token 重叠) → `data_pipeline/embedding_pipeline.py`
-- [ ] **2.2.4** 实现新闻向量化 pipeline: 分块 → Embedding → INSERT → `data_pipeline/embedding_pipeline.py`
+- [x] **2.2.1** A 股新闻获取 (akshare 个股新闻) → `data_pipeline/news_fetcher.py`
+- [x] **2.2.2** 港股/美股新闻获取 (yfinance news) → `data_pipeline/news_fetcher.py`
+- [x] **2.2.3** 实现文本分块 `chunk_text()` (~500 token/块, 50 token 重叠) → `data_pipeline/embedding_pipeline.py`
+- [x] **2.2.4** 实现新闻向量化 pipeline: 分块 → Embedding → INSERT → `data_pipeline/embedding_pipeline.py`
 - [ ] **2.2.5** pgvector IVFFlat 索引创建 + 检索验证 → SQL migration
 
 ### 2.3 SQL 示例预生成 (3 天)
@@ -81,20 +81,20 @@
 - [ ] **2.3.5** 执行完整入库 (种子 + 扩充), 目标 50-80 条
 
 ### 2.4 RAG 检索服务
-- [ ] **2.4.1** 实现 `RAGService.search_news()` — 新闻向量检索 → `services/rag.py`
-- [ ] **2.4.2** 实现 `RAGService.search_sql_examples()` — SQL 示例检索 → `services/rag.py`
-- [ ] **2.4.3** 单元测试: 检索精度 / 过滤条件 / 空结果处理 → `tests/test_rag.py`
+- [x] **2.4.1** 实现 `RAGService.search_news()` — 新闻向量检索 → `services/rag.py`
+- [x] **2.4.2** 实现 `RAGService.search_sql_examples()` — SQL 示例检索 → `services/rag.py`
+- [x] **2.4.3** 单元测试: 检索精度 / 过滤条件 / 空结果处理 → `tests/unit/test_rag.py`
 
-> ⬜ **Phase 2 未开始**: 0/17 完成
+> 🟦 **Phase 2 进行中**: 11/17 完成
 
 ---
 
 ## Phase 3: Agent 核心 — 意图理解 + 工具 + 图编排
 
 ### 3.1 LLM 服务层 (2 天)
-- [ ] **3.1.1** 实现 LLM Provider 抽象 + 工厂 (OpenAI / Gemini / Zhipu) → `services/llm.py`
-- [ ] **3.1.2** 实现 `structured_output()` — LLM 结构化输出 (JSON Schema) → `services/llm.py`
-- [ ] **3.1.3** 实现 `llm_call_with_retry()` — tenacity 重试包装 → `services/llm.py`
+- [x] **3.1.1** 实现 LLM Provider 抽象 + 工厂 (OpenAI / Gemini / Zhipu) → `services/llm.py`
+- [x] **3.1.2** 实现 `structured_output()` — LLM 结构化输出 (JSON Schema) → `services/llm.py`
+- [x] **3.1.3** 实现 `llm_call_with_retry()` — tenacity 重试包装 → `services/llm.py`
 
 ### 3.2 Prompt 工程 (2 天)
 - [ ] **3.2.1** 实现意图分类 Prompt (`INTENT_PROMPT`) → `agent/prompts/intent_prompt.py`
@@ -133,7 +133,7 @@
 - [ ] **3.6.6** 条件路由函数: `should_decompose()`, `needs_more_data()` → `agent/graph.py`
 - [ ] **3.6.7** 集成测试: 端到端 Agent 调用 → `tests/test_agent.py`
 
-> ⬜ **Phase 3 未开始**: 0/28 完成
+> 🟦 **Phase 3 进行中**: 3/28 完成
 
 ---
 
@@ -200,12 +200,12 @@
 | Phase 1.1 — Schema & Repository | 9 | 9 | 100% ✅ |
 | Phase 1.2 — 数据获取管道 | 6 | 6 | 100% ✅ |
 | Phase 1.3 — 技术指标计算 | 4 | 4 | 100% ✅ |
-| Phase 2 — 向量层 (Embedding & RAG) | 17 | 0 | 0% ⬜ |
-| Phase 3 — Agent 核心 | 28 | 0 | 0% ⬜ |
+| Phase 2 — 向量层 (Embedding & RAG) | 17 | 11 | 65% 🟦 |
+| Phase 3 — Agent 核心 | 28 | 3 | 11% 🟦 |
 | Phase 4 — API 层 | 8 | 0 | 0% ⬜ |
 | Phase 5 — 前端 | 6 | 0 | 0% ⬜ |
 | Phase 6 — 质量保障 & 部署 | 11 | 0 | 0% ⬜ |
-| **总计** | **96** | **26** | **27%** |
+| **总计** | **96** | **40** | **42%** |
 ---
 
 ## 下一步行动
@@ -213,7 +213,6 @@
 > 当前阻塞项: 无
 
 **Phase 1 已完成，建议并行开发:**
-- **Phase 2.1** (Embedding 服务) — 优先开发，为 RAG 奠定基础
-- **Phase 3.1** (LLM 服务层) — 核心基础设施
-- **Phase 3.2** (Prompt 工程) — 纯模板开发
-
+- **Phase 2.2.5** (IVFFlat 索引) — 向量检索性能保障
+- **Phase 2.3** (SQL 示例预生成) — 为 Text-to-SQL Few-shot 奠定基础
+- **Phase 3.2** (Prompt 工程) — 纯模板开发，可与 Phase 2 并行

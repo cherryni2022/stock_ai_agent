@@ -220,21 +220,23 @@ stock_agent/
 
 1. **设计文档不可随意修改**: 不要修改 `docs/` 目录中的设计文档（`PRD_stock_ai_agent.md`、`architecture.md`、`technical_design.md`、`plan.md`），除非明确要求。
 
-2. **开发阶段确认**: 新增功能前先查看 `docs/plan.md` 确认当前阶段，避免超前开发。
+2. **开发阶段确认**: 新增功能前先查看 `docs/plan.md` 和 `docs/task.md` 确认当前阶段，避免超前开发。
 
-3. **数据库变更规范**: 数据库变更必须通过 migration（或 Supabase MCP 的 `apply_migration`），切勿直接在数据库中修改表结构。
+3. **任务进度同步**: 按 `docs/plan.md` 开发计划和任务清单 `docs/task.md` 完成任务后，需同步更新 `docs/task.md` 的勾选状态与统计数据。
 
-4. **敏感信息管理**: 敏感信息（API Key、DB URL）只能放在 `.env`，不得硬编码到代码中。
+4. **数据库变更规范**: 数据库变更必须通过 migration（或 Supabase MCP 的 `apply_migration`），切勿直接在数据库中修改表结构。
 
-5. **测试覆盖要求**: 每个 PR 必须包含对应的测试。
+5. **敏感信息管理**: 敏感信息（API Key、DB URL）只能放在 `.env`，不得硬编码到代码中。
 
-6. **提交信息格式**: `<type>(<scope>): <description>`
+6. **测试覆盖要求**: 每个 PR 必须包含对应的测试。
+
+7. **提交信息格式**: `<type>(<scope>): <description>`
    - `type`: `feat` / `fix` / `refactor` / `test` / `docs` / `chore`
    - 示例: `feat(tools): add news_search_tool for RAG`
 
-7. **文档查询规范**: 使用 Context7 MCP 查询库文档，避免使用过时 API。
+8. **文档查询规范**: 使用 Context7 MCP 查询库文档，避免使用过时 API。
 
-8. **SQL 安全约束**: Text-to-SQL 工具仅允许生成 SELECT 语句，禁止 INSERT/UPDATE/DELETE/DROP。
+9. **SQL 安全约束**: Text-to-SQL 工具仅允许生成 SELECT 语句，禁止 INSERT/UPDATE/DELETE/DROP。
 
 ---
 
