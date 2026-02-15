@@ -18,17 +18,18 @@ gantt
     axisFormat  %m/%d
 
     section Phase 0: 项目骨架
-    工程脚手架                :p0, 2025-02-15, 3d
+    工程脚手架                :p0, 2026-02-15, 3d
 
     section Phase 1: 数据层
-    数据库 Schema & 模型       :p1a, after p0, 4d
+    数据库 Schema & 模型 & Repository :p1a, after p0, 5d
     数据获取管道              :p1b, after p1a, 5d
     技术指标计算              :p1c, after p1b, 3d
 
-    section Phase 2: 向量层
+    section Phase 2: 向量层 (2.1 与 Phase 1.2 并行)
     Embedding 服务            :p2a, after p1a, 3d
     新闻获取 & 向量化          :p2b, after p2a, 4d
     SQL 示例预生成            :p2c, after p2b, 3d
+    RAG 检索服务              :p2d, after p2b, 2d
 
     section Phase 3: Agent 核心
     意图分类 & 实体提取        :p3a, after p1c, 4d
@@ -47,6 +48,10 @@ gantt
     集成测试 & E2E            :p6, after p5, 4d
     可观测性 & 部署            :p6b, after p6, 3d
 ```
+
+> [!NOTE]
+> **并行优化**: Phase 2.1 (Embedding 服务) 不依赖数据表中实际有数据，仅依赖 Schema 建表完成，
+> 因此可与 Phase 1.2 (数据获取管道) **并行开发**，缩短总体时间线约 3 天。
 
 ---
 
@@ -136,45 +141,51 @@ stock_agent/
 
 > **目标**: 数据库 Schema 建表、数据获取脚本、技术指标计算，填充 MVP 股票的日 K 线 + 技术指标 + 信号。
 
-### 1.1 数据库 Schema 与模型 (4 天)
+### 1.1 数据库 Schema、模型与 Repository (5 天)
 
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
-| 1.1.1 | 创建 SQLAlchemy `Base` 和 `async_session` 工厂 | `database/base.py`, `database/session.py` | 0.2.1 | `async with get_session() as s: ...` 连通 |
+| 1.1.1 | 创建 SQLAlchemy `Base` 和 `async_session` 工厂 (含连接池配置: `pool_size`, `max_overflow`, `pool_timeout`) | `database/base.py`, `database/session.py` | 0.2.1 | `async with get_session() as s: ...` 连通, 连接池参数生效 |
 | 1.1.2 | 从 `PRPs/models/` 迁移 A 股数据模型 (11 表) | `database/models/stock.py` | 1.1.1 | Alembic 或 `metadata.create_all()` 建表成功 |
 | 1.1.3 | 迁移港股数据模型 (11 表) | `database/models/stock_hk.py` | 1.1.1 | 同上 |
 | 1.1.4 | 迁移美股数据模型 (11 表) | `database/models/stock_us.py` | 1.1.1 | 同上 |
 | 1.1.5 | 创建向量嵌入表 (3 张: news / sql_examples / conversation) | `database/models/vector.py` | 1.1.1 | pgvector 扩展启用 + 表创建成功 |
 | 1.1.6 | 创建用户/会话/日志表 (User, ChatSession, ChatMessage, AgentExecutionLog) | `database/models/user.py`, `database/models/agent_log.py` | 1.1.1 | 外键关系正确 |
 | 1.1.7 | 验证全部表在 Supabase 中创建成功 | — | 1.1.2~1.1.6 | SQL 查询 `information_schema.tables` 确认 ≥ 36 张表 |
+| 1.1.8 | 实现 Repository 基类 + `StockRepository` (按 market 路由到对应表) | `database/repositories/base.py`, `database/repositories/stock.py` | 1.1.2~1.1.4 | `StockRepository.get_daily_price(ticker, market)` 自动选表 |
+| 1.1.9 | 实现 `VectorRepository` + `UserRepository` | `database/repositories/vector.py`, `database/repositories/user.py` | 1.1.5, 1.1.6 | Repository CRUD 操作正常 |
 
 > **参考**: [技术设计 §3.2](./technical_design.md) (结构化数据模型全景图) + [§3.3](./technical_design.md) (向量数据模型)
 
 **涉及的表总览** (参考 [技术设计 §3.2.2](./technical_design.md)):
 
-| 类型 | A 股表名 | 港股表名 | 美股表名 | 行数/表 (估) |
+| 类型 | A 股表名 | 港股表名 (`_hk` 后缀) | 美股表名 (`_us` 后缀) | 行数/表 (估) |
 |------|---------|---------|---------|-------------|
-| 日 K 线 | `stock_daily_price` | `hk_stock_daily_price` | `us_stock_daily_price` | ~500 |
-| 技术指标 | `stock_technical_indicators` | `hk_stock_technical_indicators` | `us_stock_technical_indicators` | ~500 |
-| 趋势信号 | `stock_technical_trend_signal_indicators` | `hk_stock_technical_trend_*` | `us_stock_technical_trend_*` | ~500 |
-| 均值回归 | `stock_technical_mean_reversion_*` | ... | ... | ~500 |
-| 动量信号 | `stock_technical_momentum_*` | ... | ... | ~500 |
-| 波动率 | `stock_technical_volatility_*` | ... | ... | ~500 |
-| 统计套利 | `stock_technical_stat_arb_*` | ... | ... | ~500 |
-| 财务指标 | `financial_metrics` | `hk_financial_metrics` | `us_financial_metrics` | ~20 |
-| 基本信息 | `stock_basic_info`, `stock_basic_info_a` | `hk_stock_basic_info` | `us_stock_basic_info` | 2~7 |
-| 公司信息 | `stock_company_info` | `hk_stock_company_info` | `us_stock_company_info` | 2~7 |
-| 指数日线 | `stock_index_daily` | — | — | ~500 |
+| 日 K 线 | `stock_daily_price` | `stock_daily_price_hk` | `stock_daily_price_us` | ~500 |
+| 技术指标 | `stock_technical_indicators` | `stock_technical_indicators_hk` | `stock_technical_indicators_us` | ~500 |
+| 趋势信号 | `stock_technical_trend_signal_indicators` | `..._hk` | `..._us` | ~500 |
+| 均值回归 | `stock_technical_mean_reversion_*` | `..._hk` | `..._us` | ~500 |
+| 动量信号 | `stock_technical_momentum_*` | `..._hk` | `..._us` | ~500 |
+| 波动率 | `stock_technical_volatility_*` | `..._hk` | `..._us` | ~500 |
+| 统计套利 | `stock_technical_stat_arb_*` | `..._hk` | `..._us` | ~500 |
+| 财务指标 | `financial_metrics` | `financial_metrics_hk` | `financial_metrics_us` | ~20 |
+| 基本信息 | `stock_basic_info`, `stock_basic_info_a` | `stock_basic_hk` | `stock_basic_us` | 2~7 |
+| 公司信息 | `stock_company_info` | — | — | 2~7 |
+| 指数信息 | — | `stock_index_basic_hk` | `stock_index_basic_us` | 少量 |
+
+> [!WARNING]
+> **表命名约定**: 港股/美股表统一使用 `{功能}_{市场后缀}` 格式 (如 `stock_daily_price_hk`)，
+> **而非** `hk_stock_daily_price` 前缀风格。此约定与 [技术设计 §3.2.4](./technical_design.md) 保持一致。
 
 ### 1.2 数据获取管道 (5 天)
 
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
 | 1.2.1 | A 股日 K 线获取 (akshare): 601127, 688981 | `data_pipeline/akshare_fetcher.py` | 1.1.2 | 执行后 `stock_daily_price` 有 ≥ 500 行 |
-| 1.2.2 | 港股日 K 线获取 (yfinance): 9988.HK, 0700.HK, 1024.HK | `data_pipeline/yfinance_fetcher.py` | 1.1.3 | `hk_stock_daily_price` 有 ≥ 1500 行 |
-| 1.2.3 | 美股日 K 线获取 (yfinance): AAPL, MSFT, NVDA, GOOG, AMZN, META, TSLA | `data_pipeline/yfinance_fetcher.py` | 1.1.4 | `us_stock_daily_price` 有 ≥ 3500 行 |
+| 1.2.2 | 港股日 K 线获取 (yfinance): 9988.HK, 0700.HK, 1024.HK | `data_pipeline/yfinance_fetcher.py` | 1.1.3 | `stock_daily_price_hk` 有 ≥ 1500 行 |
+| 1.2.3 | 美股日 K 线获取 (yfinance): AAPL, MSFT, NVDA, GOOG, AMZN, META, TSLA | `data_pipeline/yfinance_fetcher.py` | 1.1.4 | `stock_daily_price_us` 有 ≥ 3500 行 |
 | 1.2.4 | A 股基本信息 / 公司信息获取 | `data_pipeline/akshare_fetcher.py` | 1.1.2 | `stock_basic_info` 有 ≥ 2 行 |
-| 1.2.5 | 港股/美股基本信息获取 | `data_pipeline/yfinance_fetcher.py` | 1.1.3, 1.1.4 | `hk_stock_basic_info` + `us_stock_basic_info` 有行 |
+| 1.2.5 | 港股/美股基本信息获取 | `data_pipeline/yfinance_fetcher.py` | 1.1.3, 1.1.4 | `stock_basic_hk` + `stock_basic_us` 有行 |
 | 1.2.6 | 财务数据获取 (akshare + yfinance) | `data_pipeline/` 对应文件 | 1.1.2~1.1.4 | `financial_metrics` 各市场有 ≥ 1 条记录 |
 
 > **参考**: [技术设计 §8.1 执行流程](./technical_design.md) + [架构 §4.4 数据获取](./architecture.md)
@@ -202,7 +213,7 @@ async def check():
     async with get_session() as s:
         for table in ['stock_daily_price', 'stock_technical_indicators',
                        'stock_technical_trend_signal_indicators',
-                       'hk_stock_daily_price', 'us_stock_daily_price']:
+                       'stock_daily_price_hk', 'stock_daily_price_us']:
             result = await s.execute(f'SELECT COUNT(*) FROM {table}')
             print(f'{table}: {result.scalar()} rows')
 asyncio.run(check())
