@@ -62,6 +62,51 @@ class SqlExampleEmbeddingRepository(BaseRepository[SqlExampleEmbedding]):
 
     model = SqlExampleEmbedding
 
+    async def upsert_many(self, rows: list[dict[str, Any]]) -> int:
+        if not rows:
+            return 0
+
+        def _to_vector_literal(val: Any) -> str:
+            if isinstance(val, list):
+                return f"[{','.join(str(x) for x in val)}]"
+            return str(val)
+
+        sql = text("""
+            INSERT INTO sql_examples_embeddings
+                (question_hash, question, sql_query, description, category, tables_involved, difficulty, market, embedding)
+            VALUES
+                (:question_hash, :question, :sql_query, :description, :category, :tables_involved, :difficulty, :market, :embedding::vector)
+            ON CONFLICT (question_hash)
+            DO UPDATE SET
+                question = EXCLUDED.question,
+                sql_query = EXCLUDED.sql_query,
+                description = EXCLUDED.description,
+                category = EXCLUDED.category,
+                tables_involved = EXCLUDED.tables_involved,
+                difficulty = EXCLUDED.difficulty,
+                market = EXCLUDED.market,
+                embedding = EXCLUDED.embedding
+        """)
+
+        params_list: list[dict[str, Any]] = []
+        for row in rows:
+            params_list.append(
+                {
+                    "question_hash": row["question_hash"],
+                    "question": row["question"],
+                    "sql_query": row["sql_query"],
+                    "description": row.get("description"),
+                    "category": row.get("category"),
+                    "tables_involved": row.get("tables_involved"),
+                    "difficulty": row.get("difficulty"),
+                    "market": str(row.get("market", "ALL")).upper(),
+                    "embedding": _to_vector_literal(row["embedding"]),
+                }
+            )
+
+        await self.session.execute(sql, params_list)
+        return len(params_list)
+
     async def search_similar(
         self,
         query_embedding: list[float],

@@ -1,6 +1,6 @@
 # Stock AI Agent — 任务进度跟踪
 
-> **最后更新**: 2026-02-15
+> **最后更新**: 2026-02-16
 >
 > **对应计划**: [开发计划](./plan.md)
 
@@ -71,13 +71,13 @@
 - [x] **2.2.2** 港股/美股新闻获取 (yfinance news) → `data_pipeline/news_fetcher.py`
 - [x] **2.2.3** 实现文本分块 `chunk_text()` (~500 token/块, 50 token 重叠) → `data_pipeline/embedding_pipeline.py`
 - [x] **2.2.4** 实现新闻向量化 pipeline: 分块 → Embedding → INSERT → `data_pipeline/embedding_pipeline.py`
-- [ ] **2.2.5** pgvector IVFFlat 索引创建 + 检索验证 → SQL migration
+- [x] **2.2.5** pgvector IVFFlat 索引创建 + 检索验证 → SQL migration
 
 ### 2.3 SQL 示例预生成 (3 天)
-- [ ] **2.3.1** 编写 6 类种子示例 (≥ 15 条) → `data_pipeline/sql_examples_seeder.py`
-- [ ] **2.3.2** 实现 `--seed-only` 模式: 种子 → Embedding → UPSERT → `data_pipeline/sql_examples_seeder.py`
-- [ ] **2.3.3** 实现 LLM 扩充模式: Prompt 设计 + JSON 解析 + 质量校验 → `data_pipeline/sql_examples_seeder.py`
-- [ ] **2.3.4** 实现语义去重 (Embedding 余弦相似度 > 0.92 剔除) → `data_pipeline/sql_examples_seeder.py`
+- [x] **2.3.1** 编写 6 类种子示例 (≥ 15 条) → `data_pipeline/sql_examples_seeder.py`
+- [x] **2.3.2** 实现 `--seed-only` 模式: 种子 → Embedding → UPSERT → `data_pipeline/sql_examples_seeder.py`
+- [x] **2.3.3** 实现 LLM 扩充模式: Prompt 设计 + JSON 解析 + 质量校验 → `data_pipeline/sql_examples_seeder.py`
+- [x] **2.3.4** 实现语义去重 (Embedding 余弦相似度 > 0.92 剔除) → `data_pipeline/sql_examples_seeder.py`
 - [ ] **2.3.5** 执行完整入库 (种子 + 扩充), 目标 50-80 条
 
 ### 2.4 RAG 检索服务
@@ -85,7 +85,7 @@
 - [x] **2.4.2** 实现 `RAGService.search_sql_examples()` — SQL 示例检索 → `services/rag.py`
 - [x] **2.4.3** 单元测试: 检索精度 / 过滤条件 / 空结果处理 → `tests/unit/test_rag.py`
 
-> 🟦 **Phase 2 进行中**: 11/17 完成
+> 🟦 **Phase 2 进行中**: 16/17 完成
 
 ---
 
@@ -200,12 +200,12 @@
 | Phase 1.1 — Schema & Repository | 9 | 9 | 100% ✅ |
 | Phase 1.2 — 数据获取管道 | 6 | 6 | 100% ✅ |
 | Phase 1.3 — 技术指标计算 | 4 | 4 | 100% ✅ |
-| Phase 2 — 向量层 (Embedding & RAG) | 17 | 11 | 65% 🟦 |
+| Phase 2 — 向量层 (Embedding & RAG) | 17 | 16 | 94% 🟦 |
 | Phase 3 — Agent 核心 | 28 | 3 | 11% 🟦 |
 | Phase 4 — API 层 | 8 | 0 | 0% ⬜ |
 | Phase 5 — 前端 | 6 | 0 | 0% ⬜ |
 | Phase 6 — 质量保障 & 部署 | 11 | 0 | 0% ⬜ |
-| **总计** | **96** | **40** | **42%** |
+| **总计** | **96** | **45** | **47%** |
 ---
 
 ## 下一步行动
@@ -213,6 +213,5 @@
 > 当前阻塞项: 无
 
 **Phase 1 已完成，建议并行开发:**
-- **Phase 2.2.5** (IVFFlat 索引) — 向量检索性能保障
-- **Phase 2.3** (SQL 示例预生成) — 为 Text-to-SQL Few-shot 奠定基础
+- **Phase 2.3.5** (执行完整入库) — 目标 50-80 条 SQL 示例
 - **Phase 3.2** (Prompt 工程) — 纯模板开发，可与 Phase 2 并行
