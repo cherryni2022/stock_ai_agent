@@ -405,20 +405,26 @@ class ExecutionStatus(str, Enum):
 
 **状态持久化方案**：
 
-每次状态变更写入 `agent_execution_log` 表，前端通过 session_id 查询最新状态：
+每次执行写入 `agent_execution_logs` 表，前端通过 session_id 查询最新状态：
 
 ```sql
 -- Agent 执行日志表
-CREATE TABLE agent_execution_log (
+CREATE TABLE agent_execution_logs (
     id BIGSERIAL PRIMARY KEY,
-    session_id UUID NOT NULL,              -- 关联会话
-    message_id UUID NOT NULL,              -- 关联消息
-    step_name VARCHAR(100),                -- 步骤名称
-    status VARCHAR(20) NOT NULL,           -- 执行状态
-    details JSONB,                         -- 步骤详细信息 (子任务列表、工具调用等)
-    started_at TIMESTAMPTZ,
-    completed_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    session_id VARCHAR(36),                -- 关联会话
+    user_query TEXT NOT NULL,              -- 用户原始问题
+    intent VARCHAR(50),                    -- 意图类别
+    sub_tasks JSONB,                       -- 子任务列表 (JSON)
+    tool_calls JSONB,                      -- 工具调用记录 (JSON)
+    llm_calls JSONB,                       -- LLM 调用记录 (JSON)
+    final_response TEXT,                   -- 最终回复
+    status VARCHAR(20) NOT NULL,           -- pending/running/success/failed
+    error_message TEXT,                    -- 错误信息
+    total_tokens INT DEFAULT 0,            -- 总 token
+    total_cost_usd FLOAT DEFAULT 0,        -- 总费用 (USD)
+    duration_ms INT,                       -- 耗时(毫秒)
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    completed_at TIMESTAMPTZ
 );
 ```
 
@@ -428,7 +434,7 @@ CREATE TABLE agent_execution_log (
 
 | 层级 | 记录内容 | 存储位置 |
 |-----|---------|---------|
-| **Agent Level** | 整体执行状态、耗时、token 消耗 | `agent_execution_log` |
+| **Agent Level** | 整体执行状态、耗时、token 消耗 | `agent_execution_logs` |
 | **LLM Call Level** | 每次 LLM 调用的 prompt/response/token | `llm_call_log` |
 | **Tool Call Level** | 每次工具调用的参数/结果/耗时 | `tool_call_log` |
 | **Error Level** | 错误信息、堆栈、重试次数 | `error_log` |
@@ -472,7 +478,7 @@ graph TB
             U[users<br/>用户信息]
             S[chat_sessions<br/>会话]
             M[chat_messages<br/>消息历史]
-            EL[agent_execution_log<br/>执行日志]
+            EL[agent_execution_logs<br/>执行日志]
         end
     end
     
@@ -488,26 +494,28 @@ graph TB
 
 ### 5.2 已有结构化数据表 (已设计)
 
-参考现有 `PRPs/models/` 中的模型定义，以下表已设计完成：
+参考 `stock_agent/database/models/` 中的模型定义，以下表已设计完成（**按市场拆表**，命名后缀：无后缀=A股、`_hk`=港股、`_us`=美股）：
 
-| 表名 | 用途 | 市场 | 主键/索引 |
-|-----|------|------|----------|
-| `stock_basic_info` | 股票基本信息 | 通用 | `ticker` PK |
-| `stock_company_info` | 公司详细信息 | A股 | `ticker` PK |
-| `stock_daily_price` | 日K线价格 | 通用 | `id` PK, `(ticker, trade_date)` UQ |
-| `stock_technical_indicators` | 基础技术指标 | 通用 | `(ticker, trade_date)` UQ |
-| `stock_technical_trend_signal_indicators` | 趋势策略信号 | 通用 | `(ticker, trade_date)` UQ |
-| `stock_technical_mean_reversion_signal_indicators` | 均值回归策略 | 通用 | `(ticker, trade_date)` UQ |
-| `stock_technical_momentum_signal_indicators` | 动量策略 | 通用 | `(ticker, trade_date)` UQ |
-| `stock_technical_volatility_signal_indicators` | 波动率策略 | 通用 | `(ticker, trade_date)` UQ |
-| `stock_technical_stat_arb_signal_indicators` | 统计套利策略 | 通用 | `(ticker, trade_date)` UQ |
-| `financial_metrics` | 财务指标 | 通用 | `(ticker, report_period, period)` UQ |
+| 类型 | A股表名 | 港股表名 | 美股表名 | 用途 | 联合唯一键 |
+|------|---------|---------|---------|------|-----------|
+| 股票基本信息 | `stock_basic_info` | `stock_basic_hk` | `stock_basic_us` | 股票基础元数据 | ticker |
+| 公司信息 | `stock_company_info` | — | — | A股公司详细信息 | ticker |
+| 日K线行情 | `stock_daily_price` | `stock_daily_price_hk` | `stock_daily_price_us` | 日K线价格 | ticker + trade_date |
+| 基础技术指标 | `stock_technical_indicators` | `stock_technical_indicators_hk` | `stock_technical_indicators_us` | MACD/RSI/KDJ/布林带/均线 | ticker + trade_date |
+| 趋势信号 | `stock_technical_trend_signal_indicators` | `..._hk` | `..._us` | 趋势策略信号 | ticker + trade_date |
+| 均值回归信号 | `stock_technical_mean_reversion_signal_indicators` | `..._hk` | `..._us` | 均值回归策略信号 | ticker + trade_date |
+| 动量信号 | `stock_technical_momentum_signal_indicators` | `..._hk` | `..._us` | 动量策略信号 | ticker + trade_date |
+| 波动率信号 | `stock_technical_volatility_signal_indicators` | `..._hk` | `..._us` | 波动率策略信号 | ticker + trade_date |
+| 统计套利信号 | `stock_technical_stat_arb_signal_indicators` | `..._hk` | `..._us` | 统计套利策略信号 | ticker + trade_date |
+| 财务指标 | `financial_metrics` | `financial_metrics_hk` | `financial_metrics_us` | 财务指标与估值指标 | ticker + report_period + period |
 
 > [!IMPORTANT]
-> **多市场统一设计**：当前 A股/港股/美股 使用统一表结构，通过 `market` 字段区分。ticker 格式约定：
+> **Ticker 格式约定**：
 > - A股: `600519` (6位数字)
 > - 港股: `01024.HK` (带 .HK 后缀)
 > - 美股: `GOOG` (字母代码)
+>
+> **路由规则**：工具/SQL 生成根据 `ticker` 推断 market，并选择对应的市场表（`*_hk` / `*_us`）。
 
 ### 5.3 需要新增的数据表
 
@@ -558,24 +566,24 @@ CREATE INDEX idx_chat_messages_created_at ON chat_messages(created_at);
 
 ```sql
 -- Agent 执行日志 (每次用户提问的完整执行记录)
-CREATE TABLE agent_execution_log (
+CREATE TABLE agent_execution_logs (
     id BIGSERIAL PRIMARY KEY,
-    session_id UUID NOT NULL REFERENCES chat_sessions(id),
-    message_id UUID NOT NULL REFERENCES chat_messages(id),
-    step_name VARCHAR(100) NOT NULL,     -- intent_classification, entity_extraction, tool_execution, synthesis
-    step_order INT,                      -- 步骤顺序
-    status VARCHAR(20) NOT NULL,         -- pending/running/completed/failed
-    input_data JSONB,                    -- 输入参数
-    output_data JSONB,                   -- 输出结果
+    session_id VARCHAR(36),              -- 关联会话
+    user_query TEXT NOT NULL,            -- 用户原始问题
+    intent VARCHAR(50),                  -- 意图类别
+    sub_tasks JSONB,                     -- 子任务列表 (JSON)
+    tool_calls JSONB,                    -- 工具调用记录 (JSON)
+    llm_calls JSONB,                     -- LLM 调用记录 (JSON)
+    final_response TEXT,                 -- 最终回复
+    status VARCHAR(20) NOT NULL,         -- pending/running/success/failed
     error_message TEXT,                  -- 错误信息
+    total_tokens INT DEFAULT 0,          -- 总 token
+    total_cost_usd FLOAT DEFAULT 0,      -- 总费用 (USD)
     duration_ms INT,                     -- 耗时(毫秒)
-    llm_tokens_used JSONB,              -- {prompt_tokens, completion_tokens, total_tokens}
-    started_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX idx_agent_exec_session ON agent_execution_log(session_id);
-CREATE INDEX idx_agent_exec_message ON agent_execution_log(message_id);
+CREATE INDEX idx_agent_exec_session ON agent_execution_logs(session_id);
 ```
 
 #### 5.3.3 向量化数据表
@@ -848,6 +856,8 @@ TABLE_SCHEMAS = """
 Table: stock_daily_price
 Columns: ticker(股票代码), trade_date(交易日期), open(开盘价), 
          close(收盘价), high(最高价), low(最低价), volume(成交量)...
+
+注：港股/美股分别使用 stock_daily_price_hk / stock_daily_price_us（同结构、表名带后缀）。
 """
 ```
 
@@ -861,6 +871,7 @@ Columns: ticker(股票代码), trade_date(交易日期), open(开盘价),
   FROM stock_daily_price 
   WHERE ticker = '600519' 
   ORDER BY trade_date DESC LIMIT 30;
+（港股/美股同理，FROM 表名改为 stock_daily_price_hk / stock_daily_price_us）
 → LLM 参考示例生成目标 SQL
 ```
 
@@ -1061,7 +1072,7 @@ stock-ai-agent/
 | 决策 | 选择 | 理由 |
 |-----|------|------|
 | 数据存储 | Supabase 统一存储 | 简化架构，pgvector 原生支持向量 |
-| 多市场方案 | 统一表 + market 字段 | 避免表膨胀，查询逻辑统一 |
+| 多市场方案 | 按市场拆表 (`_hk` / `_us`) | 避免跨市场字段差异导致的统一表复杂度，SQL 更直观 |
 | 日K vs 分钟K | 初期仅日K | 数据量可控，满足学习需要 |
 | Agent 框架 | LangGraph 编排 + PydanticAI 工具 | 学习目标匹配 |
 | Embedding 维度 | **统一 1536 维** | 三大 provider (OpenAI/Gemini/Zhipu) 均支持此维度，切换 provider 无需重计算 |

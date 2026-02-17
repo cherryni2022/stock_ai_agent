@@ -14,12 +14,11 @@
 
 ```
 stock_agent/
-├── config.py           # 配置管理
-├── main.py             # FastAPI 入口
+├── config/
+│   └── settings.py     # 配置管理 (pydantic-settings)
+├── main.py             # FastAPI 入口 (Phase 4 实现)
 ├── agent/              # Agent 核心
-│   ├── graph.py        # LangGraph 图定义
-│   ├── state.py        # 全局状态
-│   ├── nodes/          # 图节点
+│   ├── nodes/          # 图节点 (Phase 3 实现)
 │   └── prompts/        # Prompt 模板
 ├── tools/              # Agent 工具
 ├── database/           # 数据库层
@@ -28,8 +27,8 @@ stock_agent/
 ├── services/           # 业务服务层
 └── api/                # API 路由
 
-data_pipeline/          # 数据管道
-frontend/               # 前端
+data_pipeline/          # 数据管道 (位于 stock_agent/data_pipeline/)
+frontend/               # 前端 (位于 stock_agent/frontend/)
 ```
 
 ### 1.2 MVP 开发范围
@@ -43,12 +42,12 @@ MVP 阶段 **不需要** 定时任务或自动调度。所有数据获取通过�
 
 ```bash
 # 数据更新 — 手动执行
-python -m data_pipeline.akshare_fetcher        # A股数据
-python -m data_pipeline.yfinance_fetcher        # 港股/美股数据
-python -m data_pipeline.indicator_calculator    # 技术指标 (依赖上面两步)
-python -m data_pipeline.news_fetcher            # 新闻获取
-python -m data_pipeline.embedding_pipeline      # 新闻向量化
-python -m data_pipeline.sql_examples_seeder     # SQL 示例向量化入库
+python -m stock_agent.data_pipeline.akshare_fetcher        # A股数据
+python -m stock_agent.data_pipeline.yfinance_fetcher       # 港股/美股数据
+python -m stock_agent.data_pipeline.indicator_calculator   # 技术指标 (依赖上面两步)
+python -m stock_agent.data_pipeline.news_fetcher           # 新闻获取
+python -m stock_agent.data_pipeline.embedding_pipeline     # 新闻向量化
+python -m stock_agent.data_pipeline.sql_examples_seeder    # SQL 示例向量化入库
 ```
 
 #### MVP 股票标的池
@@ -78,7 +77,7 @@ python -m data_pipeline.sql_examples_seeder     # SQL 示例向量化入库
 #### MVP 标的池配置
 
 ```python
-# config.py 中添加 MVP 标的池
+# stock_agent/config/settings.py 中添加 MVP 标的池
 MVP_STOCK_UNIVERSE: dict[str, list[str]] = {
     "US": ["AAPL", "MSFT", "NVDA", "GOOG", "AMZN", "META", "TSLA"],
     "HK": ["9988.HK", "0700.HK", "1024.HK"],
@@ -88,13 +87,14 @@ MVP_STOCK_UNIVERSE: dict[str, list[str]] = {
 
 ---
 
-## 2. 配置管理 (`config.py`)
+## 2. 配置管理 (`config/settings.py`)
 
 使用 Pydantic Settings 管理所有配置，支持 `.env` 文件和环境变量。
 
 ```python
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -129,9 +129,10 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = 10                   # RAG 检索返回数
     SQL_MAX_ROWS: int = 500               # SQL 查询行数限制
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+    }
 
 
 @lru_cache
@@ -271,10 +272,10 @@ class AgentState(TypedDict):
 ### 3.2 数据库模型 (`database/models/`)
 
 > [!NOTE]
-> 现有结构化数据模型定义于 `PRPs/models/`，按市场拆分为 3 个文件：
-> - [stock_data_db_model.py](file:///Users/niwen/PycharmProjects/my_dev_agent/stock-ai-agent/PRPs/models/stock_data_db_model.py) — A股 + 通用
-> - [stock_data_db_model_hk.py](file:///Users/niwen/PycharmProjects/my_dev_agent/stock-ai-agent/PRPs/models/stock_data_db_model_hk.py) — 港股
-> - [stock_data_db_model_us.py](file:///Users/niwen/PycharmProjects/my_dev_agent/stock-ai-agent/PRPs/models/stock_data_db_model_us.py) — 美股
+> 当前结构化数据模型已迁移至 `stock_agent/database/models/`，按市场拆分为 3 个文件：
+> - [stock.py](file:///Users/niwen/PycharmProjects/my_dev_agent/stock-ai-agent/stock_agent/database/models/stock.py) — A股 + 通用
+> - [stock_hk.py](file:///Users/niwen/PycharmProjects/my_dev_agent/stock-ai-agent/stock_agent/database/models/stock_hk.py) — 港股
+> - [stock_us.py](file:///Users/niwen/PycharmProjects/my_dev_agent/stock-ai-agent/stock_agent/database/models/stock_us.py) — 美股
 
 #### 3.2.1 数据模型全景图
 
@@ -682,22 +683,23 @@ class ChatMessage(Base):
 ```python
 # database/models/agent_log.py
 class AgentExecutionLog(Base):
-    __tablename__ = "agent_execution_log"
+    __tablename__ = "agent_execution_logs"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(UUID(as_uuid=True), ForeignKey("chat_sessions.id"), nullable=False)
-    message_id = Column(UUID(as_uuid=True), ForeignKey("chat_messages.id"), nullable=False)
-    step_name = Column(String(100), nullable=False)
-    step_order = Column(Integer)
-    status = Column(String(20), nullable=False)
-    input_data = Column(JSONB)
-    output_data = Column(JSONB)
-    error_message = Column(Text)
-    duration_ms = Column(Integer)
-    llm_tokens_used = Column(JSONB)   # {prompt_tokens, completion_tokens, total_tokens}
-    started_at = Column(DateTime(timezone=True))
-    completed_at = Column(DateTime(timezone=True))
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    session_id = Column(String(36), index=True, comment="关联会话 ID")
+    user_query = Column(Text, nullable=False, comment="用户原始问题")
+    intent = Column(String(50), comment="识别的意图类别")
+    sub_tasks = Column(JSONB, comment="分解的子任务列表 (JSON)")
+    tool_calls = Column(JSONB, comment="工具调用记录 (JSON)")
+    llm_calls = Column(JSONB, comment="LLM 调用记录 (JSON)")
+    final_response = Column(Text, comment="最终回复")
+    status = Column(String(20), default="pending", comment="状态: pending / running / success / failed")
+    error_message = Column(Text, comment="错误信息")
+    total_tokens = Column(Integer, default=0, comment="总 Token 消耗")
+    total_cost_usd = Column(Float, default=0.0, comment="总费用 (USD)")
+    duration_ms = Column(Integer, comment="执行耗时 (毫秒)")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), comment="完成时间")
 ```
 
 ### 3.3 向量数据模型 (`database/models/vector.py`)
@@ -876,6 +878,82 @@ LIMIT 10;
 ---
 
 ## 4. Agent Graph 实现 (`agent/graph.py`)
+
+> [!NOTE]
+> 本章节描述的是 **Phase 3 目标实现**（LangGraph 图编排 + 节点实现）。当前仓库代码侧 `stock_agent/agent/` 仅包含 prompts 与占位目录，`graph.py/state.py/nodes/*.py` 仍待落地实现。
+
+### 4.0 PydanticAI + LangGraph 集成
+
+本系统采用 “**LangGraph 负责编排，PydanticAI 负责 LLM 交互与类型约束**” 的组合方式：
+
+| 组件 | 职责 | 产出 |
+|------|------|------|
+| LangGraph | 状态承载、节点路由、循环/分支、并行调度、失败回退 | 可观测、可控的执行流程 |
+| PydanticAI | 结构化输出校验、工具调用协议、依赖注入 (deps)、可选流式输出 | 更强的类型安全与更少的解析样板代码 |
+
+#### 4.0.1 Deps 设计 (RunContext.deps)
+
+节点与工具需要的依赖通过 `deps` 注入，避免全局变量，便于测试与替换实现：
+
+```python
+from dataclasses import dataclass
+from typing import Any, Callable
+
+
+@dataclass
+class AgentDeps:
+    settings: Any
+    db_session_factory: Callable[[], Any]
+    stock_repo: Any
+    vector_repo: Any
+    user_repo: Any
+    embedding_service: Any
+    rag_service: Any
+```
+
+#### 4.0.2 节点与 PydanticAI Agent 映射
+
+LLM 相关节点使用 PydanticAI 定义 “输入依赖 + 输出类型 + 可用工具”，LangGraph 负责把节点串起来：
+
+| LangGraph 节点 | PydanticAI Agent | output_type (强类型输出) | tools (可调用工具) | deps |
+|---|---|---|---|---|
+| IntentNode | intent_agent | IntentNodeOutput | 无 | AgentDeps |
+| PlannerNode | planner_agent | DecompositionPlan | 无 | AgentDeps |
+| ExecutorNode | （非 LLM 节点） | — | query_stock_price / query_tech_indicator / analyze_tech_signal / query_financial_data / search_news / text_to_sql / stock_resolver | AgentDeps |
+| SynthesizerNode | synthesizer_agent | SynthesisOutput | 无 | AgentDeps |
+| ResponderNode | responder_agent | FinalResponse | 无 | AgentDeps |
+
+说明：
+- IntentNode/PlannerNode/SynthesizerNode/ResponderNode 的核心价值是 “结构化输出 + 校验重试”，适合交给 PydanticAI 管理 output_type。
+- ExecutorNode 是否引入 “LLM 选择工具/补全参数” 属于可选项；MVP 推荐按 `plan.execution_order` 直接执行确定性工具，减少不确定性与成本。
+
+#### 4.0.3 LLM 输出字段：强类型 vs 可序列化
+
+LangGraph state 建议按 “强类型输出” 与 “可序列化结果” 分层，确保可持久化与可观测：
+
+| 字段 | 类别 | 建议类型 | 说明 |
+|------|------|----------|------|
+| intent | LLM 输出（强类型） | IntentClassification | 意图分类结果 |
+| entities | LLM 输出（强类型） | ExtractedEntities | 实体提取结果 |
+| resolved_stocks | 工具结果（可序列化） | list[dict[str, Any]] | 股票解析结果，存 dict 便于 JSON 序列化 |
+| plan | LLM 输出（强类型） | DecompositionPlan | 子任务 DAG |
+| tool_results | 工具结果（可序列化） | dict[str, Any] | task_id → result（建议 result 可直接 JSON 化） |
+| analysis_result | LLM 输出（强类型） | SynthesisOutput | 综合分析结构 |
+| final_response | LLM 输出（强类型） | FinalResponse | 最终回复结构 |
+
+#### 4.0.4 SSE 事件映射
+
+SSE 推送以 LangGraph 节点边界为主、以工具调用/LLM token 为细粒度补充：
+
+| 事件 type | 触发时机 | 数据来源 |
+|----------|----------|----------|
+| status | 节点开始/结束、或关键阶段切换 | LangGraph 节点包装器 |
+| step | 工具开始/结束/失败 | ExecutorNode 工具包装器 |
+| token | LLM 流式输出时逐 token 推送 | PydanticAI 流式 run (可选) |
+| result | 生成最终结果时推送一次 | ResponderNode 输出 |
+| error | 节点异常/工具异常不可恢复时 | 全局异常捕获 |
+
+status 建议阶段枚举与 PRD/架构保持一致（analyzing / planning / retrieving / thinking / completed / failed），step 事件以 `tool_name + params + duration_ms + status` 为最小集，保证前端可渲染可追踪。
 
 ### 4.1 LangGraph 图构建
 
@@ -1603,7 +1681,7 @@ flowchart TD
     end
     
     subgraph CALC_DETAIL["指标计算"]
-        IND["indicator_calculator.py<br/>6 类技术指标<br/>基于 pandas + ta"]
+        IND["indicator_calculator.py<br/>6 类技术指标<br/>基于 pandas + ta-lib"]
     end
     
     subgraph NEWS_DETAIL["新闻获取"]
@@ -2348,13 +2426,13 @@ SQL 示例预生成 & 入库脚本
 
 用法:
   # 仅写入人工种子 (安全、无 LLM 依赖)
-  python -m data_pipeline.sql_examples_seeder --seed-only
+  python -m stock_agent.data_pipeline.sql_examples_seeder --seed-only
 
   # 种子 + LLM 扩充 (需要 LLM API)
-  python -m data_pipeline.sql_examples_seeder --expand --count 8
+  python -m stock_agent.data_pipeline.sql_examples_seeder --expand --count 8
 
   # 干跑 (只打印不入库，用于审核)
-  python -m data_pipeline.sql_examples_seeder --expand --dry-run
+  python -m stock_agent.data_pipeline.sql_examples_seeder --expand --dry-run
 """
 
 import argparse
@@ -2573,13 +2651,13 @@ def build_few_shot_section(examples: list[dict]) -> str:
 
 | 任务 | 频率 | 触发时间 | 执行方式 |
 |------|------|----------|----------|
-| A股日K | 每日 | 15:30 CST | `python -m data_pipeline.akshare_fetcher` |
-| 港股日K | 每日 | 16:15 HKT | `python -m data_pipeline.yfinance_fetcher` |
-| 美股日K | 每日 | 06:00 CST (次日) | `python -m data_pipeline.yfinance_fetcher` |
-| 技术指标 | 每日 | K线入库后 | `python -m data_pipeline.indicator_calculator` |
-| 新闻 | 每日 1-2 次 | 按需 | `python -m data_pipeline.news_fetcher` |
-| 新闻向量化 | 新闻入库后 | 按需 | `python -m data_pipeline.embedding_pipeline` |
-| SQL 示例 | 一次性 | 初始化时 | `python -m data_pipeline.sql_examples_seeder` |
+| A股日K | 每日 | 15:30 CST | `python -m stock_agent.data_pipeline.akshare_fetcher` |
+| 港股日K | 每日 | 16:15 HKT | `python -m stock_agent.data_pipeline.yfinance_fetcher` |
+| 美股日K | 每日 | 06:00 CST (次日) | `python -m stock_agent.data_pipeline.yfinance_fetcher` |
+| 技术指标 | 每日 | K线入库后 | `python -m stock_agent.data_pipeline.indicator_calculator` |
+| 新闻 | 每日 1-2 次 | 按需 | `python -m stock_agent.data_pipeline.news_fetcher` |
+| 新闻向量化 | 新闻入库后 | 按需 | `python -m stock_agent.data_pipeline.embedding_pipeline` |
+| SQL 示例 | 一次性 | 初始化时 | `python -m stock_agent.data_pipeline.sql_examples_seeder` |
 | 财务数据 | 每季 | 财报发布后 | 手动 |
 
 ---
@@ -2720,7 +2798,8 @@ dependencies = [
     # ---- Computation ----
     "pandas>=2.2",
     "numpy>=1.26",
-    "ta>=0.11",
+    "scipy>=1.17",
+    "ta-lib>=0.6.8",
     
     # ---- Utilities ----
     "pydantic>=2.9",

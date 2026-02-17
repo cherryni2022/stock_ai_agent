@@ -245,7 +245,7 @@ graph TB
         A_USER["users"]
         A_SESSION["chat_sessions"]
         A_MSG["chat_messages"]
-        A_LOG["agent_execution_log"]
+        A_LOG["agent_execution_logs"]
     end
     
     style StructuredData fill:#16213e,stroke:#0f3460,color:#fff
@@ -438,7 +438,7 @@ def create_embedding_provider() -> EmbeddingProvider:
 ```mermaid
 graph TD
     subgraph AgentLevel["Agent Level"]
-        A1["agent_execution_log<br/>整体执行状态/耗时/token"]
+        A1["agent_execution_logs<br/>整体执行状态/耗时/token"]
     end
     
     subgraph LLMLevel["LLM Call Level"]
@@ -459,7 +459,7 @@ graph TD
 
 | 指标 | 来源 | 用途 |
 |------|------|------|
-| **端到端延迟** | `agent_execution_log.duration_ms` | 用户体验监控 |
+| **端到端延迟** | `agent_execution_logs.duration_ms` | 用户体验监控 |
 | **LLM Token 消耗** | `llm_call_log.tokens_used` | 成本控制 |
 | **工具调用成功率** | `tool_call_log.status` | 工具质量评估 |
 | **意图分类准确率** | 人工标注 vs 系统分类 | 模型评估 |
