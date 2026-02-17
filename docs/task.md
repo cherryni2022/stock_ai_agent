@@ -49,7 +49,7 @@
 > ✅ **Phase 1.2 完成**: 2026-02-15
 
 ### 1.3 技术指标计算
-- [x] **1.3.1** 实现指标计算引擎 (pandas + ta 库) → `data_pipeline/indicator_calculator.py`
+- [x] **1.3.1** 实现指标计算引擎 (pandas + ta-lib + scipy) → `data_pipeline/indicator_calculator.py`
 - [x] **1.3.2** 计算 MACD / RSI / KDJ / 布林带 / 均线 → `indicator_calculator.py`
 - [x] **1.3.3** 计算 5 类策略信号 → `indicator_calculator.py`
 - [x] **1.3.4** 全市场指标计算验证 ← *已运行 `run_pipeline` 并验证各表数据完整*
