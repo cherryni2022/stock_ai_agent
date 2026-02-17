@@ -1,0 +1,345 @@
+[
+  {
+    "question": "AAPL 最近 20 个交易日的收盘价是多少？",
+    "sql_query": "SELECT trade_date, close FROM stock_daily_price_us WHERE ticker = 'AAPL' ORDER BY trade_date DESC LIMIT 20",
+    "description": "查询美股 AAPL 最近 20 个交易日收盘价。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_us"],
+    "difficulty": "easy",
+    "market": "US"
+  },
+  {
+    "question": "腾讯(0700.HK) 最近 30 个交易日的成交量和收盘价？",
+    "sql_query": "SELECT trade_date, close, volume FROM stock_daily_price_hk WHERE ticker = '0700.HK' ORDER BY trade_date DESC LIMIT 30",
+    "description": "查询港股腾讯最近 30 个交易日收盘价与成交量。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_hk"],
+    "difficulty": "easy",
+    "market": "HK"
+  },
+  {
+    "question": "赛力斯(601127) 最近 60 个交易日的涨跌幅(pct_change)？",
+    "sql_query": "SELECT trade_date, close, pct_change FROM stock_daily_price WHERE ticker = '601127' ORDER BY trade_date DESC LIMIT 60",
+    "description": "查询 A 股赛力斯最近 60 日收盘价与涨跌幅。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price"],
+    "difficulty": "easy",
+    "market": "CN"
+  },
+  {
+    "question": "对比 AAPL 与 MSFT 最近 20 个交易日的收盘价与涨跌幅？",
+    "sql_query": "SELECT ticker, trade_date, close, pct_change FROM stock_daily_price_us WHERE ticker IN ('AAPL', 'MSFT') ORDER BY ticker, trade_date DESC LIMIT 40",
+    "description": "同口径对比两只美股最近 20 日价格与涨跌幅。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_us"],
+    "difficulty": "easy",
+    "market": "US"
+  },
+  {
+    "question": "NVDA 最近 20 个交易日的平均成交量与最大成交量是多少？",
+    "sql_query": "WITH last AS (SELECT volume FROM stock_daily_price_us WHERE ticker = 'NVDA' ORDER BY trade_date DESC LIMIT 20) SELECT AVG(volume) AS avg_volume, MAX(volume) AS max_volume FROM last",
+    "description": "对最近 20 日成交量做聚合统计。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_us"],
+    "difficulty": "medium",
+    "market": "US"
+  },
+  {
+    "question": "AAPL 最近 30 个交易日的平均收盘价、最高收盘价、最低收盘价？",
+    "sql_query": "WITH last AS (SELECT close FROM stock_daily_price_us WHERE ticker = 'AAPL' ORDER BY trade_date DESC LIMIT 30) SELECT AVG(close) AS avg_close, MAX(close) AS max_close, MIN(close) AS min_close FROM last",
+    "description": "对最近 30 日收盘价做均值/极值聚合。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_us"],
+    "difficulty": "medium",
+    "market": "US"
+  },
+  {
+    "question": "赛力斯(601127) 最近 60 个交易日的涨跌幅波动率（标准差）是多少？",
+    "sql_query": "WITH last AS (SELECT pct_change FROM stock_daily_price WHERE ticker = '601127' ORDER BY trade_date DESC LIMIT 60) SELECT STDDEV_SAMP(pct_change) AS pct_change_stddev FROM last",
+    "description": "用涨跌幅标准差近似衡量区间波动率。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price"],
+    "difficulty": "medium",
+    "market": "CN"
+  },
+  {
+    "question": "腾讯(0700.HK) 最近 20 个交易日上涨天数与下跌天数是多少？",
+    "sql_query": "WITH last AS (SELECT pct_change FROM stock_daily_price_hk WHERE ticker = '0700.HK' ORDER BY trade_date DESC LIMIT 20) SELECT SUM(CASE WHEN pct_change > 0 THEN 1 ELSE 0 END) AS up_days, SUM(CASE WHEN pct_change < 0 THEN 1 ELSE 0 END) AS down_days FROM last",
+    "description": "统计最近 20 日涨跌天数（业务型汇总口径）。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_hk"],
+    "difficulty": "medium",
+    "market": "HK"
+  },
+  {
+    "question": "美股 MVP 股票最近一个交易日涨跌幅(pct_change) 排名前 3 的是谁？",
+    "sql_query": "WITH latest AS (SELECT ticker, MAX(trade_date) AS trade_date FROM stock_daily_price_us WHERE ticker IN ('AAPL','MSFT','NVDA','GOOG','AMZN','META','TSLA') GROUP BY ticker), rows AS (SELECT p.ticker, p.trade_date, p.close, p.pct_change FROM stock_daily_price_us p JOIN latest l ON p.ticker = l.ticker AND p.trade_date = l.trade_date) SELECT ticker, trade_date, close, pct_change FROM rows ORDER BY pct_change DESC LIMIT 3",
+    "description": "用每个 ticker 的最新交易日数据做排名。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_us"],
+    "difficulty": "hard",
+    "market": "US"
+  },
+  {
+    "question": "A 股 MVP 股票最近 5 个交易日累计涨跌幅最高的是哪只？",
+    "sql_query": "WITH last AS (SELECT ticker, pct_change FROM stock_daily_price WHERE ticker IN ('601127','688981') ORDER BY trade_date DESC), last5 AS (SELECT ticker, pct_change, ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY 1) AS rn FROM last) SELECT ticker, SUM(pct_change) AS sum_pct_change FROM last5 WHERE rn <= 5 GROUP BY ticker ORDER BY sum_pct_change DESC LIMIT 1",
+    "description": "近 5 日累计涨跌幅（用 pct_change 求和近似）并取 Top1。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price"],
+    "difficulty": "hard",
+    "market": "CN"
+  },
+  {
+    "question": "AAPL 按月份统计最近 12 个月的月均收盘价？",
+    "sql_query": "SELECT SUBSTRING(trade_date, 1, 7) AS month, AVG(close) AS avg_close FROM stock_daily_price_us WHERE ticker = 'AAPL' GROUP BY SUBSTRING(trade_date, 1, 7) ORDER BY month DESC LIMIT 12",
+    "description": "按月分组聚合价格（trade_date 为字符串）。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_us"],
+    "difficulty": "medium",
+    "market": "US"
+  },
+  {
+    "question": "跨市场查询：AAPL、腾讯(0700.HK)、赛力斯(601127) 的最新收盘价统一输出？",
+    "sql_query": "WITH us_latest AS (SELECT MAX(trade_date) AS trade_date FROM stock_daily_price_us WHERE ticker = 'AAPL'), hk_latest AS (SELECT MAX(trade_date) AS trade_date FROM stock_daily_price_hk WHERE ticker = '0700.HK'), cn_latest AS (SELECT MAX(trade_date) AS trade_date FROM stock_daily_price WHERE ticker = '601127') SELECT 'US' AS market, p.ticker, p.trade_date, p.close FROM stock_daily_price_us p JOIN us_latest d ON p.trade_date = d.trade_date WHERE p.ticker = 'AAPL' UNION ALL SELECT 'HK' AS market, p.ticker, p.trade_date, p.close FROM stock_daily_price_hk p JOIN hk_latest d ON p.trade_date = d.trade_date WHERE p.ticker = '0700.HK' UNION ALL SELECT 'CN' AS market, p.ticker, p.trade_date, p.close FROM stock_daily_price p JOIN cn_latest d ON p.trade_date = d.trade_date WHERE p.ticker = '601127'",
+    "description": "用 UNION ALL 统一口径输出跨市场最新收盘价。",
+    "category": "price",
+    "tables_involved": ["stock_daily_price_us", "stock_daily_price_hk", "stock_daily_price"],
+    "difficulty": "hard",
+    "market": "ALL"
+  },
+  {
+    "question": "NVDA 最近一个交易日的 RSI_6 与 MACD 指标是多少？",
+    "sql_query": "SELECT trade_date, rsi_6, macd_diff, macd_dea, macd_hist FROM stock_technical_indicators_us WHERE ticker = 'NVDA' ORDER BY trade_date DESC LIMIT 1",
+    "description": "查询美股 NVDA 最近交易日的 RSI 与 MACD。",
+    "category": "indicator",
+    "tables_involved": ["stock_technical_indicators_us"],
+    "difficulty": "easy",
+    "market": "US"
+  },
+  {
+    "question": "中芯国际(688981) 最近 30 个交易日的布林带上下轨与收盘价？",
+    "sql_query": "SELECT i.trade_date, p.close, i.boll_upper, i.boll_middle, i.boll_lower FROM stock_technical_indicators i JOIN stock_daily_price p ON i.ticker = p.ticker AND i.trade_date = p.trade_date WHERE i.ticker = '688981' ORDER BY i.trade_date DESC LIMIT 30",
+    "description": "联表查询 A 股收盘价与布林带上下轨。",
+    "category": "indicator",
+    "tables_involved": ["stock_technical_indicators", "stock_daily_price"],
+    "difficulty": "medium",
+    "market": "CN"
+  },
+  {
+    "question": "阿里巴巴(9988.HK) 最近 10 个交易日的均线 MA5/MA20？",
+    "sql_query": "SELECT trade_date, ma5, ma20 FROM stock_technical_indicators_hk WHERE ticker = '9988.HK' ORDER BY trade_date DESC LIMIT 10",
+    "description": "查询港股 9988.HK 最近 10 日均线。",
+    "category": "indicator",
+    "tables_involved": ["stock_technical_indicators_hk"],
+    "difficulty": "easy",
+    "market": "HK"
+  },
+  {
+    "question": "赛力斯(601127) 最近 30 日 RSI_6 小于 30 的天数是多少？",
+    "sql_query": "WITH last AS (SELECT rsi_6 FROM stock_technical_indicators WHERE ticker = '601127' ORDER BY trade_date DESC LIMIT 30) SELECT COUNT(*) AS oversold_days FROM last WHERE rsi_6 < 30",
+    "description": "用条件筛选统计超卖天数。",
+    "category": "indicator",
+    "tables_involved": ["stock_technical_indicators"],
+    "difficulty": "medium",
+    "market": "CN"
+  },
+  {
+    "question": "AAPL 最近 60 个交易日 RSI_6 的平均值与最大值是多少？",
+    "sql_query": "WITH last AS (SELECT rsi_6 FROM stock_technical_indicators_us WHERE ticker = 'AAPL' ORDER BY trade_date DESC LIMIT 60) SELECT AVG(rsi_6) AS avg_rsi_6, MAX(rsi_6) AS max_rsi_6 FROM last",
+    "description": "对指标做区间聚合统计。",
+    "category": "indicator",
+    "tables_involved": ["stock_technical_indicators_us"],
+    "difficulty": "medium",
+    "market": "US"
+  },
+  {
+    "question": "美股 MVP 股票最近一个交易日 RSI_6 最高的前 3 只是谁？",
+    "sql_query": "WITH latest AS (SELECT ticker, MAX(trade_date) AS trade_date FROM stock_technical_indicators_us WHERE ticker IN ('AAPL','MSFT','NVDA','GOOG','AMZN','META','TSLA') GROUP BY ticker), rows AS (SELECT i.ticker, i.trade_date, i.rsi_6 FROM stock_technical_indicators_us i JOIN latest l ON i.ticker = l.ticker AND i.trade_date = l.trade_date) SELECT ticker, trade_date, rsi_6 FROM rows ORDER BY rsi_6 DESC LIMIT 3",
+    "description": "用最新指标值做排名（TopN）。",
+    "category": "indicator",
+    "tables_involved": ["stock_technical_indicators_us"],
+    "difficulty": "hard",
+    "market": "US"
+  },
+  {
+    "question": "TSLA 最近一个交易日的趋势策略信号(trend_signal)是什么？",
+    "sql_query": "SELECT trade_date, trend_signal, trend_confidence, trend_strength FROM stock_technical_trend_signal_indicators_us WHERE ticker = 'TSLA' ORDER BY trade_date DESC LIMIT 1",
+    "description": "查询美股 TSLA 最近交易日趋势跟踪策略信号。",
+    "category": "signal",
+    "tables_involved": ["stock_technical_trend_signal_indicators_us"],
+    "difficulty": "easy",
+    "market": "US"
+  },
+  {
+    "question": "快手(1024.HK) 最近一个交易日的动量策略信号(momentum_signal)是什么？",
+    "sql_query": "SELECT trade_date, momentum_signal, momentum_confidence FROM stock_technical_momentum_signal_indicators_hk WHERE ticker = '1024.HK' ORDER BY trade_date DESC LIMIT 1",
+    "description": "查询港股快手最近交易日动量策略信号。",
+    "category": "signal",
+    "tables_involved": ["stock_technical_momentum_signal_indicators_hk"],
+    "difficulty": "easy",
+    "market": "HK"
+  },
+  {
+    "question": "赛力斯(601127) 最近一个交易日的均值回归策略信号(mean_reversion_signal)是什么？",
+    "sql_query": "SELECT trade_date, mean_reversion_signal, mean_reversion_confidence, z_score FROM stock_technical_mean_reversion_signal_indicators WHERE ticker = '601127' ORDER BY trade_date DESC LIMIT 1",
+    "description": "查询 A 股赛力斯最近交易日均值回归策略信号。",
+    "category": "signal",
+    "tables_involved": ["stock_technical_mean_reversion_signal_indicators"],
+    "difficulty": "easy",
+    "market": "CN"
+  },
+  {
+    "question": "AAPL 最近一个交易日的波动率策略信号(volatility_signal)是什么？",
+    "sql_query": "SELECT trade_date, volatility_signal, volatility_confidence FROM stock_technical_volatility_signal_indicators_us WHERE ticker = 'AAPL' ORDER BY trade_date DESC LIMIT 1",
+    "description": "查询美股 AAPL 最近交易日波动率策略信号。",
+    "category": "signal",
+    "tables_involved": ["stock_technical_volatility_signal_indicators_us"],
+    "difficulty": "easy",
+    "market": "US"
+  },
+  {
+    "question": "腾讯(0700.HK) 最近 20 个交易日趋势信号与收盘价联表明细？",
+    "sql_query": "SELECT s.trade_date, p.close, s.trend_signal, s.trend_confidence FROM stock_technical_trend_signal_indicators_hk s JOIN stock_daily_price_hk p ON s.ticker = p.ticker AND s.trade_date = p.trade_date WHERE s.ticker = '0700.HK' ORDER BY s.trade_date DESC LIMIT 20",
+    "description": "联表输出价格与趋势信号明细。",
+    "category": "signal",
+    "tables_involved": ["stock_technical_trend_signal_indicators_hk", "stock_daily_price_hk"],
+    "difficulty": "medium",
+    "market": "HK"
+  },
+  {
+    "question": "赛力斯(601127) 最近 30 日短期趋势(short_trend)与中期趋势(medium_trend)同时为真的天数？",
+    "sql_query": "WITH last AS (SELECT short_trend, medium_trend FROM stock_technical_trend_signal_indicators WHERE ticker = '601127' ORDER BY trade_date DESC LIMIT 30) SELECT COUNT(*) AS both_trend_days FROM last WHERE short_trend = TRUE AND medium_trend = TRUE",
+    "description": "用业务口径统计趋势一致性天数。",
+    "category": "signal",
+    "tables_involved": ["stock_technical_trend_signal_indicators"],
+    "difficulty": "medium",
+    "market": "CN"
+  },
+  {
+    "question": "港股 MVP 股票最近一个交易日趋势强度(trend_strength) 排名前 2 的是谁？",
+    "sql_query": "WITH latest AS (SELECT ticker, MAX(trade_date) AS trade_date FROM stock_technical_trend_signal_indicators_hk WHERE ticker IN ('9988.HK','0700.HK','1024.HK') GROUP BY ticker), rows AS (SELECT s.ticker, s.trade_date, s.trend_strength FROM stock_technical_trend_signal_indicators_hk s JOIN latest l ON s.ticker = l.ticker AND s.trade_date = l.trade_date) SELECT ticker, trade_date, trend_strength FROM rows ORDER BY trend_strength DESC LIMIT 2",
+    "description": "用最新趋势强度做 TopN。",
+    "category": "signal",
+    "tables_involved": ["stock_technical_trend_signal_indicators_hk"],
+    "difficulty": "hard",
+    "market": "HK"
+  },
+  {
+    "question": "GOOG 最近一期财报的 ROE 与市盈率(PE)是多少？",
+    "sql_query": "SELECT report_period, return_on_equity, price_to_earnings_ratio FROM financial_metrics_us WHERE ticker = 'GOOG' ORDER BY report_period DESC LIMIT 1",
+    "description": "查询美股 GOOG 最近一期财务指标（ROE、PE）。",
+    "category": "financial",
+    "tables_involved": ["financial_metrics_us"],
+    "difficulty": "easy",
+    "market": "US"
+  },
+  {
+    "question": "腾讯(0700.HK) 最近 4 期的营收增长(revenue_growth)与净利率(net_margin)？",
+    "sql_query": "SELECT report_period, revenue_growth, net_margin FROM financial_metrics_hk WHERE ticker = '0700.HK' ORDER BY report_period DESC LIMIT 4",
+    "description": "查询港股腾讯最近 4 期财务增长与利润率指标。",
+    "category": "financial",
+    "tables_involved": ["financial_metrics_hk"],
+    "difficulty": "easy",
+    "market": "HK"
+  },
+  {
+    "question": "中芯国际(688981) 最近一期财报的资产负债率(debt_to_assets)与流动比率(current_ratio)？",
+    "sql_query": "SELECT report_period, debt_to_assets, current_ratio FROM financial_metrics WHERE ticker = '688981' ORDER BY report_period DESC LIMIT 1",
+    "description": "查询 A 股中芯国际最近一期资产负债率与流动比率。",
+    "category": "financial",
+    "tables_involved": ["financial_metrics"],
+    "difficulty": "easy",
+    "market": "CN"
+  },
+  {
+    "question": "美股 MVP 股票中，最新一期 ROE 大于 0.15 的有哪些？",
+    "sql_query": "WITH ranked AS (SELECT ticker, report_period, return_on_equity, ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY report_period DESC) AS rn FROM financial_metrics_us WHERE ticker IN ('AAPL','MSFT','NVDA','GOOG','AMZN','META','TSLA')) SELECT ticker, report_period, return_on_equity FROM ranked WHERE rn = 1 AND return_on_equity > 0.15 ORDER BY return_on_equity DESC",
+    "description": "用窗口函数取每个 ticker 最新一期财务数据并做筛选。",
+    "category": "financial",
+    "tables_involved": ["financial_metrics_us"],
+    "difficulty": "hard",
+    "market": "US"
+  },
+  {
+    "question": "美股 MVP 股票中，最新一期 PE 小于 30 的有哪些？",
+    "sql_query": "WITH ranked AS (SELECT ticker, report_period, price_to_earnings_ratio, ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY report_period DESC) AS rn FROM financial_metrics_us WHERE ticker IN ('AAPL','MSFT','NVDA','GOOG','AMZN','META','TSLA')) SELECT ticker, report_period, price_to_earnings_ratio FROM ranked WHERE rn = 1 AND price_to_earnings_ratio IS NOT NULL AND price_to_earnings_ratio > 0 AND price_to_earnings_ratio < 30 ORDER BY price_to_earnings_ratio ASC",
+    "description": "估值筛选示例（PE 阈值）。",
+    "category": "financial",
+    "tables_involved": ["financial_metrics_us"],
+    "difficulty": "hard",
+    "market": "US"
+  },
+  {
+    "question": "AAPL 的基本信息（市值、行业、货币）是什么？",
+    "sql_query": "SELECT ticker, long_name, industry, currency, market_cap FROM stock_basic_us WHERE ticker = 'AAPL' LIMIT 1",
+    "description": "查询美股 AAPL 的基本信息。",
+    "category": "meta",
+    "tables_involved": ["stock_basic_us"],
+    "difficulty": "easy",
+    "market": "US"
+  },
+  {
+    "question": "赛力斯(601127) 的基本信息（名称、行业、上市日期）是什么？",
+    "sql_query": "SELECT ticker, name, industry, listing_date FROM stock_basic_info WHERE ticker = '601127' LIMIT 1",
+    "description": "查询 A 股赛力斯基本信息。",
+    "category": "meta",
+    "tables_involved": ["stock_basic_info"],
+    "difficulty": "easy",
+    "market": "CN"
+  },
+  {
+    "question": "美股 MVP 股票按行业统计：最新交易日各行业的平均涨跌幅是多少？",
+    "sql_query": "WITH d AS (SELECT MAX(trade_date) AS trade_date FROM stock_daily_price_us WHERE ticker IN ('AAPL','MSFT','NVDA','GOOG','AMZN','META','TSLA')), rows AS (SELECT p.ticker, p.pct_change, b.industry FROM stock_daily_price_us p JOIN d ON p.trade_date = d.trade_date JOIN stock_basic_us b ON p.ticker = b.ticker WHERE p.ticker IN ('AAPL','MSFT','NVDA','GOOG','AMZN','META','TSLA')) SELECT industry, AVG(pct_change) AS avg_pct_change, COUNT(*) AS ticker_count FROM rows GROUP BY industry ORDER BY avg_pct_change DESC",
+    "description": "按行业维度做 group by 聚合（price + basic join）。",
+    "category": "meta",
+    "tables_involved": ["stock_daily_price_us", "stock_basic_us"],
+    "difficulty": "hard",
+    "market": "US"
+  },
+  {
+    "question": "赛力斯(601127) 最近 30 日收盘价与 RSI_6 同步走势？",
+    "sql_query": "SELECT i.trade_date, p.close, i.rsi_6 FROM stock_technical_indicators i JOIN stock_daily_price p ON i.ticker = p.ticker AND i.trade_date = p.trade_date WHERE i.ticker = '601127' ORDER BY i.trade_date DESC LIMIT 30",
+    "description": "联表查询价格与 RSI 指标用于综合分析。",
+    "category": "composite",
+    "tables_involved": ["stock_technical_indicators", "stock_daily_price"],
+    "difficulty": "medium",
+    "market": "CN"
+  },
+  {
+    "question": "AAPL 最近 30 日放量天数（成交量大于最近 30 日均值的 1.5 倍）是多少？",
+    "sql_query": "WITH last AS (SELECT volume FROM stock_daily_price_us WHERE ticker = 'AAPL' ORDER BY trade_date DESC LIMIT 30), avgv AS (SELECT AVG(volume) AS avg_volume FROM last) SELECT COUNT(*) AS spike_days FROM last, avgv WHERE last.volume > avgv.avg_volume * 1.5",
+    "description": "业务型汇总：放量天数统计（聚合 + 条件筛选）。",
+    "category": "composite",
+    "tables_involved": ["stock_daily_price_us"],
+    "difficulty": "hard",
+    "market": "US"
+  },
+  {
+    "question": "综合筛选：美股 MVP 股票最近一个交易日涨跌幅大于 2 且 RSI_6 大于 60 的有哪些？",
+    "sql_query": "WITH lp AS (SELECT ticker, MAX(trade_date) AS trade_date FROM stock_daily_price_us WHERE ticker IN ('AAPL','MSFT','NVDA','GOOG','AMZN','META','TSLA') GROUP BY ticker), li AS (SELECT ticker, MAX(trade_date) AS trade_date FROM stock_technical_indicators_us WHERE ticker IN ('AAPL','MSFT','NVDA','GOOG','AMZN','META','TSLA') GROUP BY ticker), p AS (SELECT d.ticker, d.trade_date, d.pct_change FROM stock_daily_price_us d JOIN lp x ON d.ticker = x.ticker AND d.trade_date = x.trade_date), i AS (SELECT t.ticker, t.trade_date, t.rsi_6 FROM stock_technical_indicators_us t JOIN li x ON t.ticker = x.ticker AND t.trade_date = x.trade_date) SELECT p.ticker, p.trade_date, p.pct_change, i.rsi_6 FROM p JOIN i ON p.ticker = i.ticker AND p.trade_date = i.trade_date WHERE p.pct_change > 2 AND i.rsi_6 > 60 ORDER BY p.pct_change DESC",
+    "description": "跨表统一最新日期后联表筛选（price + indicator）。",
+    "category": "composite",
+    "tables_involved": ["stock_daily_price_us", "stock_technical_indicators_us"],
+    "difficulty": "hard",
+    "market": "US"
+  },
+  {
+    "question": "综合对比：AAPL 与 TSLA 最近 10 个交易日累计涨跌幅分别是多少？",
+    "sql_query": "WITH last AS (SELECT ticker, pct_change, ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY trade_date DESC) AS rn FROM stock_daily_price_us WHERE ticker IN ('AAPL','TSLA')) SELECT ticker, SUM(pct_change) AS sum_pct_change FROM last WHERE rn <= 10 GROUP BY ticker ORDER BY sum_pct_change DESC",
+    "description": "用窗口函数取每个 ticker 最近 10 日并聚合累计涨跌幅。",
+    "category": "composite",
+    "tables_involved": ["stock_daily_price_us"],
+    "difficulty": "hard",
+    "market": "US"
+  },
+  {
+    "question": "综合分析：AAPL 最新一期 PE 与最新收盘价分别是多少？",
+    "sql_query": "WITH p AS (SELECT ticker, MAX(trade_date) AS trade_date FROM stock_daily_price_us WHERE ticker = 'AAPL' GROUP BY ticker), pr AS (SELECT d.ticker, d.trade_date, d.close FROM stock_daily_price_us d JOIN p x ON d.ticker = x.ticker AND d.trade_date = x.trade_date), f AS (SELECT ticker, report_period, price_to_earnings_ratio, ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY report_period DESC) AS rn FROM financial_metrics_us WHERE ticker = 'AAPL') SELECT pr.ticker, pr.trade_date, pr.close, f.report_period, f.price_to_earnings_ratio FROM pr JOIN f ON pr.ticker = f.ticker WHERE f.rn = 1",
+    "description": "把价格最新值与财务最新期指标合并输出。",
+    "category": "composite",
+    "tables_involved": ["stock_daily_price_us", "financial_metrics_us"],
+    "difficulty": "hard",
+    "market": "US"
+  }
+]
+

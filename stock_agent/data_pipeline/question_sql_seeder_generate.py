@@ -111,7 +111,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out",
         default=None,
-        help="输出 JSON 文件路径（默认: stock_agent/data_pipeline/stock_question_sql.json）",
+        help="输出 JSON 文件路径（默认: stock_agent/data_pipeline/stock_question_sql_seed.json）",
     )
     parser.add_argument(
         "--prompt",
@@ -131,7 +131,7 @@ async def main() -> None:
     out_path = (
         Path(args.out)
         if args.out
-        else Path(__file__).resolve().parent / "stock_question_sql.json"
+        else Path(__file__).resolve().parent / "stock_question_sql_seed.json"
     )
     prompt_path = (
         Path(args.prompt)
@@ -154,4 +154,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-

@@ -140,13 +140,14 @@ def _validate_example(ex: SqlExample) -> SqlExample:
 
 def build_seed_examples() -> list[SqlExample]:
     base_dir = Path(__file__).resolve().parent
-    seed_path = base_dir / "stock_question_sql.json"
-    if not seed_path.exists():
-        alt = base_dir / "stock_question_sql_bak.json"
-        if alt.exists():
-            seed_path = alt
-        else:
-            raise FileNotFoundError(base_dir / "stock_question_sql.json")
+    candidates = [
+        base_dir / "stock_question_sql_seed.json",
+        base_dir / "stock_question_sql.json",
+        base_dir / "stock_question_sql_bak.json",
+    ]
+    seed_path = next((p for p in candidates if p.exists()), None)
+    if seed_path is None:
+        raise FileNotFoundError(base_dir / "stock_question_sql_seed.json")
 
     with seed_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
@@ -279,6 +280,12 @@ async def seed_sql_examples(
     for ex in examples:
         by_hash[_question_hash(ex.question)] = ex
     examples = list(by_hash.values())
+
+    if expand:
+        base_dir = Path(__file__).resolve().parent
+        out_path = base_dir / "stock_question_sql_example.json"
+        payload = [ex.model_dump() for ex in examples]
+        out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     questions = [ex.question for ex in examples]
     logger.info(f"待写入 SQL 示例: {len(examples)} 条")

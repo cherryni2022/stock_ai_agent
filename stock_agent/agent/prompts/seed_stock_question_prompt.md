@@ -111,7 +111,7 @@
 - 如做 TopN/筛选，优先基于“最新交易日/最新一期财报”构造子查询/CTE 保证口径一致
 
 ## 种子示例数据格式（JSON）
-文件：`stock_agent/data_pipeline/stock_question_sql.json`  
+文件：`stock_agent/data_pipeline/stock_question_sql_seed.json`  
 结构：数组，每个元素为：
 - `question`: string
 - `sql_query`: string

@@ -147,7 +147,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input",
         default=None,
-        help="输入 JSON（默认: stock_agent/data_pipeline/stock_question_sql.json）",
+        help="输入 JSON（默认: stock_agent/data_pipeline/stock_question_sql_seed.json）",
     )
     parser.add_argument("--report", default=None, help="输出报告 JSON 路径（可选）")
     parser.add_argument("--llm-eval", action="store_true", help="启用 LLM 评估（需要配置 LLM）")
@@ -166,7 +166,7 @@ async def main() -> None:
     input_path = (
         Path(args.input)
         if args.input
-        else Path(__file__).resolve().parent / "stock_question_sql.json"
+        else Path(__file__).resolve().parent / "stock_question_sql_seed.json"
     )
     examples = _load_examples(input_path)
 
@@ -205,4 +205,3 @@ if __name__ == "__main__":
     import asyncio
 
     asyncio.run(main())
-
