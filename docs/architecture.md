@@ -235,7 +235,7 @@ graph TB
     
     subgraph VectorData["🔢 向量数据 (3 张表, pgvector)"]
         direction LR
-        V_NEWS["stock_news_embeddings<br/>VECTOR(1536)"]
+        V_NEWS["news_embeddings<br/>VECTOR(1536)"]
         V_SQL["sql_examples_embeddings<br/>VECTOR(1536)"]
         V_CONV["conversation_embeddings<br/>VECTOR(1536)"]
     end

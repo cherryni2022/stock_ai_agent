@@ -468,7 +468,7 @@ graph TB
         end
         
         subgraph Vector["向量化数据 (pgvector)"]
-            NV[stock_news_embeddings<br/>新闻向量]
+            NV[news_embeddings<br/>新闻向量]
             AV[stock_announcement_embeddings<br/>公告向量]
             SV[sql_examples_embeddings<br/>SQL示例向量]
             CV[conversation_embeddings<br/>对话历史向量]
@@ -593,7 +593,7 @@ CREATE INDEX idx_agent_exec_session ON agent_execution_logs(session_id);
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- 新闻/公告 向量嵌入表
-CREATE TABLE stock_news_embeddings (
+CREATE TABLE news_embeddings (
     id BIGSERIAL PRIMARY KEY,
     source_type VARCHAR(20) NOT NULL,    -- news/announcement
     ticker VARCHAR(20),                  -- 关联股票 (可为空表示行业/宏观新闻)
@@ -608,9 +608,9 @@ CREATE TABLE stock_news_embeddings (
     metadata JSONB DEFAULT '{}',         -- 额外元数据
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX idx_news_emb_ticker ON stock_news_embeddings(ticker);
-CREATE INDEX idx_news_emb_published ON stock_news_embeddings(published_at);
-CREATE INDEX idx_news_emb_vector ON stock_news_embeddings 
+CREATE INDEX idx_news_emb_ticker ON news_embeddings(ticker);
+CREATE INDEX idx_news_emb_published ON news_embeddings(published_at);
+CREATE INDEX idx_news_emb_vector ON news_embeddings 
     USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
 -- Text-to-SQL 示例向量表 (RAG增强SQL生成)
@@ -739,7 +739,7 @@ flowchart TD
     end
 
     subgraph Store["存储"]
-        S1[(stock_news_embeddings)]
+        S1[(news_embeddings)]
     end
 
     F1 & F2 & F3 --> P1 --> P2 --> P3 --> P4 --> S1
@@ -885,7 +885,7 @@ Columns: ticker(股票代码), trade_date(交易日期), open(开盘价),
 
 | 场景 | 查询来源 | 向量表 | 检索策略 |
 |-----|---------|-------|---------|
-| **新闻/公告检索** | 用户关于公司新闻、事件的问题 | `stock_news_embeddings` | 语义相似度 + ticker 过滤 + 时间范围过滤 |
+| **新闻/公告检索** | 用户关于公司新闻、事件的问题 | `news_embeddings` | 语义相似度 + ticker 过滤 + 时间范围过滤 |
 | **Text-to-SQL Few-shot** | 用户的结构化数据查询需求 | `sql_examples_embeddings` | 语义相似度 Top-K |
 | **对话历史上下文** | 多轮对话中的上下文引用 | `conversation_embeddings` | 语义相似度 + session 过滤 |
 

@@ -9,6 +9,37 @@
 
 ---
 
+## 统一口径约定（实现必须遵守）
+
+| 项 | 约定 | 说明 |
+|---|---|---|
+| 意图分类体系 | 以 PRD 的 **6 大类**为准：`QUOTE` / `TECHNICAL` / `FUNDAMENTAL` / `NEWS_EVENT` / `COMPOSITE` / `KNOWLEDGE` | 允许增加 `sub_intent`（可选）字段承载子类标签（如 `quote.price`、`tech.indicator`）。代码中需要对“6 大类 ↔ 子类 ↔ 工具”的映射写清楚说明。 |
+| SSE 状态枚举 | `analyzing` / `planning` / `retrieving` / `thinking` / `completed` / `failed` | 前后端、日志表、测试用例统一使用该枚举。 |
+| API 路径约定 | 统一为 `/api/...` | MVP 不引入 `/api/v1` 版本前缀。 |
+| 健康检查端点 | `GET /api/health` | 与架构文档一致。 |
+| MVP 功能范围 | 以 PRD + 架构的 6 大类为准 | PRD 子类不强制拆成独立工具；优先在每类工具内部处理子类逻辑（如通过 `sub_intent` 或参数分支，必要时由 `text_to_sql` 覆盖结构化查询变体）。 |
+
+### 可观测性日志写入规则（总账 + 明细账）
+
+为保证可追踪、可审计且可控成本，采用“三表分层”：
+
+1. **总账：`agent_execution_logs`（每次请求一条，必写）**
+   - 创建：`POST /api/chat` 收到请求后立即插入，生成 `execution_log_id`，并在 SSE 的所有事件中携带该 id
+   - 更新：状态从 `pending` → `running` → `success/failed`；结束时写入 `final_response`、`duration_ms`、`completed_at`、`error_message`
+   - 内容：仅保留摘要信息（如 intent、sub_tasks 概览、tool_calls/llm_calls 概览），不存放完整 prompt/响应或大结果集
+
+2. **LLM 明细账：`llm_call_logs`（每次 LLM 调用一条，必写）**
+   - 范围：Intent/Planner/Synthesizer/Responder 等节点的 LLM 调用，以及工具内部（如 Text-to-SQL 生成 SQL、SQL 示例扩充）
+   - 关联：必须带 `execution_log_id` 与 `session_id`（必要时附 `node_name` / `tool_name` / attempt）
+   - 内容：记录耗时、tokens、错误、重试信息；prompt/response 按需截断或摘要，避免无限制落库
+
+3. **工具明细账：`tool_call_logs`（每次工具执行一条，必写）**
+   - 范围：所有工具调用（价格/指标/信号/财务/新闻/文本转 SQL/股票解析）均通过统一包装器写入
+   - 关联：必须带 `execution_log_id` 与 `session_id`（必要时附 `task_id` / tool_params 摘要）
+   - 内容：记录耗时、状态、错误、结果摘要（如 row_count/top_k/命中 ticker），不存放大体积结果
+
+> 说明：`agent_execution_logs.total_tokens/total_cost_usd` 可通过聚合 `llm_call_logs` 回填（增量或结束时汇总均可）。
+
 ## 总览：开发阶段路线图
 
 ```mermaid
@@ -96,6 +127,7 @@ stock_agent/
 │   │   └── responder.py
 │   └── prompts/
 │       ├── intent_prompt.py
+│       ├── planner_prompt.py
 │       ├── synthesis_prompt.py
 │       └── text_to_sql_prompt.py
 ├── tools/
@@ -151,9 +183,11 @@ stock_agent/
 | 1.1.4 | 迁移美股数据模型 (11 表) | `database/models/stock_us.py` | 1.1.1 | 同上 |
 | 1.1.5 | 创建向量嵌入表 (3 张: news / sql_examples / conversation) | `database/models/vector.py` | 1.1.1 | pgvector 扩展启用 + 表创建成功 |
 | 1.1.6 | 创建用户/会话/日志表 (User, ChatSession, ChatMessage, AgentExecutionLog) | `database/models/user.py`, `database/models/agent_log.py` | 1.1.1 | 外键关系正确 |
-| 1.1.7 | 验证全部表在 Supabase 中创建成功 | — | 1.1.2~1.1.6 | SQL 查询 `information_schema.tables` 确认 ≥ 36 张表 |
-| 1.1.8 | 实现 Repository 基类 + `StockRepository` (按 market 路由到对应表) | `database/repositories/base.py`, `database/repositories/stock.py` | 1.1.2~1.1.4 | `StockRepository.get_daily_price(ticker, market)` 自动选表 |
-| 1.1.9 | 实现 `VectorRepository` + `UserRepository` | `database/repositories/vector.py`, `database/repositories/user.py` | 1.1.5, 1.1.6 | Repository CRUD 操作正常 |
+| 1.1.7 | 创建可观测性日志表 (LLM Call / Tool Call) | `database/models/llm_call_logs.py`, `database/models/tool_call_logs.py` | 1.1.1 | 表创建成功 + 基本索引存在 |
+| 1.1.8 | 实现 `LogRepository`（写入 llm_call_logs / tool_call_logs） | `database/repositories/log.py` | 1.1.7 | 可写入一条 mock 记录并查询返回 |
+| 1.1.9 | 验证全部表在 Supabase 中创建成功 | — | 1.1.2~1.1.8 | SQL 查询 `information_schema.tables` 确认 ≥ 36 张表 |
+| 1.1.10 | 实现 Repository 基类 + `StockRepository` (按 market 路由到对应表) | `database/repositories/base.py`, `database/repositories/stock.py` | 1.1.2~1.1.4 | `StockRepository.get_daily_price(ticker, market)` 自动选表 |
+| 1.1.11 | 实现 `VectorRepository` + `UserRepository` | `database/repositories/vector.py`, `database/repositories/user.py` | 1.1.5, 1.1.6 | Repository CRUD 操作正常 |
 
 > **参考**: [技术设计 §3.2](./technical_design.md) (结构化数据模型全景图) + [§3.3](./technical_design.md) (向量数据模型)
 
@@ -231,9 +265,9 @@ asyncio.run(check())
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
 | 2.1.1 | 实现 `EmbeddingProvider` 抽象接口 | `services/embedding.py` | 0.2.1 | 导入不报错 |
-| 2.1.2 | 实现 `OpenAIEmbedding` + `GeminiEmbedding` + `ZhipuEmbedding` 三个实现 | `services/embedding.py` | 2.1.1 | 各 Provider `embed_query("test")` 返回 1536-d 向量 |
+| 2.1.2 | 实现 `OpenAIEmbedding` + `GeminiEmbedding` + `ZhipuEmbedding` 三个实现 | `services/embedding.py` | 2.1.1 | 存储维度统一为 1536；MVP 测试只要求 OpenAI/Gemini `embed_query("test")` 返回 1536-d，Zhipu Embedding 保留接口但默认不启用 |
 | 2.1.3 | 实现 `create_embedding_provider()` 工厂函数 (按 env 切换) | `services/embedding.py` | 2.1.2 | 修改 `EMBEDDING_PROVIDER` 环境变量可切换实现 |
-| 2.1.4 | 单元测试: 向量维度 / 批量 embed / 异常处理 | `tests/test_embedding.py` | 2.1.2 | `pytest tests/test_embedding.py` 全通过 |
+| 2.1.4 | 单元测试: 向量维度 / 批量 embed / 异常处理 | `tests/unit/test_embedding.py` | 2.1.2 | `pytest tests/unit/test_embedding.py` 全通过 |
 
 > **参考**: [技术设计 §6.1](./technical_design.md) + [架构 §6 LLM 与 Embedding 配置](./architecture.md)
 
@@ -244,7 +278,7 @@ asyncio.run(check())
 | 2.2.1 | A 股新闻获取 (akshare 个股新闻) | `data_pipeline/news_fetcher.py` | 1.1.5 | 获取到 ≥ 10 条新闻 |
 | 2.2.2 | 港股/美股新闻获取 (yfinance news) | `data_pipeline/news_fetcher.py` | 1.1.5 | 获取到 ≥ 10 条新闻 |
 | 2.2.3 | 实现文本分块 `chunk_text()` (~500 token / 块, 50 token 重叠) | `data_pipeline/embedding_pipeline.py` | — | 长文正确分块 + 重叠验证 |
-| 2.2.4 | 实现新闻向量化 pipeline: 分块 → Embedding → INSERT | `data_pipeline/embedding_pipeline.py` | 2.1.3, 2.2.1 | `stock_news_embeddings` 表有数据 + `embedding` 维度 = 1536 |
+| 2.2.4 | 实现新闻向量化 pipeline: 分块 → Embedding → INSERT | `data_pipeline/embedding_pipeline.py` | 2.1.3, 2.2.1 | `news_embeddings` 表有数据 + `embedding` 维度 = 1536 |
 | 2.2.5 | pgvector IVFFlat 索引创建 + 检索验证 | SQL migration | 2.2.4 | `ORDER BY embedding <=> $1::vector LIMIT 5` 正常返回 |
 
 > **参考**: [技术设计 §8.2](./technical_design.md) (新闻向量化管道) + [§3.3.1](./technical_design.md) (新闻向量表)
@@ -267,7 +301,7 @@ asyncio.run(check())
 |---|------|---------|------|---------|
 | 2.4.1 | 实现 `RAGService.search_news()` — 新闻向量检索 | `services/rag.py` | 2.2.4 | 返回 TOP-K 结果 + similarity 分数 |
 | 2.4.2 | 实现 `RAGService.search_sql_examples()` — SQL 示例检索 | `services/rag.py` | 2.3.2 | 自然语言问题检索到相关 SQL 示例 |
-| 2.4.3 | 单元测试: 检索精度 / 过滤条件 / 空结果处理 | `tests/test_rag.py` | 2.4.1, 2.4.2 | `pytest tests/test_rag.py` 全通过 |
+| 2.4.3 | 单元测试: 检索精度 / 过滤条件 / 空结果处理 | `tests/unit/test_rag.py` | 2.4.1, 2.4.2 | `pytest tests/unit/test_rag.py` 全通过（days 过滤使用 `make_interval(days => :days)`，避免 `INTERVAL ':days days'` 参数化问题） |
 
 > **参考**: [技术设计 §6.2](./technical_design.md) (RAG 检索服务)
 
@@ -311,6 +345,7 @@ from stock_agent.services.rag import RAGService
 | 3.2.2 | 实现实体提取 Prompt (`ENTITY_EXTRACTION_PROMPT`) | `agent/prompts/intent_prompt.py` | — | 同上 |
 | 3.2.3 | 实现综合分析 Prompt (`SYNTHESIS_PROMPT`) | `agent/prompts/synthesis_prompt.py` | — | 同上 |
 | 3.2.4 | 实现 Text-to-SQL Prompt (`TEXT_TO_SQL_PROMPT`) + `build_few_shot_section()` | `agent/prompts/text_to_sql_prompt.py` | — | 同上 |
+| 3.2.5 | 实现计划生成 Prompt (`PLANNER_PROMPT`) | `agent/prompts/planner_prompt.py` | — | 同上 |
 
 > **参考**: [技术设计 §9](./technical_design.md) (Prompt 工程) + [§8.3.8](./technical_design.md) (Text-to-SQL Prompt)
 
@@ -319,7 +354,7 @@ from stock_agent.services.rag import RAGService
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
 | 3.3.1 | 定义 `AgentState` TypedDict | `agent/state.py` | — | 类型检查通过 |
-| 3.3.2 | 定义 Pydantic 模型: `IntentClassification`, `ExtractedEntities`, `StockEntity`, `ExecutionPlan`, `SubTask` | `agent/state.py` | — | `.model_validate()` 测试通过 |
+| 3.3.2 | 定义 Pydantic 模型: `IntentClassification`, `ExtractedEntities`, `StockEntity`, `ExecutionPlan`, `SubTask` | `agent/state.py` | — | `.model_validate()` 测试通过（意图 6 大类与 PRD 一致，含可选 `sub_intent` 字段；代码中说明映射规则） |
 
 > **参考**: [技术设计 §3.1](./technical_design.md) (核心数据模型)
 
@@ -415,18 +450,20 @@ print(result['analysis_result'])
 |---|------|---------|------|---------|
 | 4.1.1 | FastAPI App 入口 + CORS / 异常处理中间件 | `main.py` | — | `uvicorn stock_agent.main:app` 启动成功 |
 | 4.1.2 | `POST /api/chat` — SSE 流式推送 | `api/chat.py` | 3.6.5 | curl 请求收到 `data: {...}` 事件流 |
-| 4.1.3 | SSE 事件类型实现: `status` (进度) / `result` (结果) / `[DONE]` (结束) | `api/chat.py` | 4.1.2 | 事件类型与前端约定一致 |
+| 4.1.3 | SSE 事件类型实现: `status` (进度) / `result` (结果) / `[DONE]` (结束) | `api/chat.py` | 4.1.2 | 事件类型与前端约定一致（status 使用 analyzing/planning/retrieving/thinking/completed/failed） |
 | 4.1.4 | `status_callback` 注入 Agent: 各节点实时推送状态 | `api/chat.py` + `agent/nodes/*.py` | 4.1.2 | 前端收到 analyzing → retrieving → synthesizing 状态流 |
+| 4.1.5 | SSE 事件关联 `execution_log_id` | `api/chat.py` + 日志写入处 | 1.1.7, 4.1.2 | 每条事件包含 execution_log_id，便于全链路追踪 |
 
 > **参考**: [技术设计 §7.1](./technical_design.md) (聊天 API — SSE) + [架构 §5](./architecture.md) (通信协议)
 
 **SSE 事件流格式** (参考 [技术设计 §7.1](./technical_design.md)):
 
 ```
-data: {"type": "status", "status": "analyzing"}
-data: {"type": "status", "status": "retrieving", "steps": [...]}
-data: {"type": "status", "status": "synthesizing"}
-data: {"type": "result", "content": "分析结果...", "sources": [...], "disclaimer": "..."}
+data: {"type": "status", "status": "analyzing", "execution_log_id": 123}
+data: {"type": "status", "status": "planning", "execution_log_id": 123}
+data: {"type": "status", "status": "retrieving", "steps": [...], "execution_log_id": 123}
+data: {"type": "status", "status": "thinking", "execution_log_id": 123}
+data: {"type": "result", "content": "分析结果...", "sources": [...], "disclaimer": "...", "execution_log_id": 123}
 data: [DONE]
 ```
 
@@ -529,7 +566,15 @@ streamlit run frontend/app.py
 | 6.3.1 | 结构化日志 (structlog): 每步输出 JSON 日志 | 各模块 | — | 日志包含 session_id, step_name, duration_ms |
 | 6.3.2 | `AgentExecutionLog` 持久化: 每步操作写入审计表 | `agent/nodes/*.py` | 1.1.6 | 查询 `agent_execution_log` 有记录 |
 | 6.3.3 | Dockerfile + docker-compose.yml (FastAPI + Streamlit + PostgreSQL) | `Dockerfile`, `docker-compose.yml` | Phase 5 | `docker-compose up` 启动成功 |
-| 6.3.4 | 健康检查端点 `GET /health` | `main.py` | — | 返回 200 + DB/LLM 连接状态 |
+| 6.3.4 | 健康检查端点 `GET /api/health` | `main.py` | — | 返回 200 + DB/LLM 连接状态 |
+
+---
+
+## MVP 鉴权边界说明
+
+MVP 阶段不接入 Supabase Auth（匿名/默认用户模式），但保留用户/会话表结构用于后续平滑接入：
+- API 默认 `user_id = "default"`，会话按 `session_id` 维度管理
+- 后续 Phase 再接入 Supabase Auth：用真实 `user_id` 替换默认值，并在 Repository 层按 user_id 做隔离
 
 > **参考**: [架构 §7](./architecture.md) (可观测性) + [§8](./architecture.md) (部署)
 

@@ -1,6 +1,6 @@
 # Stock AI Agent — 任务进度跟踪
 
-> **最后更新**: 2026-02-16
+> **最后更新**: 2026-02-18
 >
 > **对应计划**: [开发计划](./plan.md)
 
@@ -32,11 +32,13 @@
 - [x] **1.1.4** 迁移美股数据模型 (11 表) → `database/models/stock_us.py`
 - [x] **1.1.5** 创建向量嵌入表 (3 张) → `database/models/vector.py`
 - [x] **1.1.6** 创建用户/会话/日志表 → `database/models/user.py`, `database/models/agent_log.py`
-- [x] **1.1.7** 验证全部表在 Supabase 中创建成功 → **37 张表确认** ✅
-- [x] **1.1.8** 实现 Repository 基类 + `StockRepository` → `database/repositories/base.py`, `stock.py`
-- [x] **1.1.9** 实现 `VectorRepository` + `UserRepository` → `database/repositories/vector.py`, `user.py`
+- [ ] **1.1.7** 创建可观测性日志表 (llm_call_logs / tool_call_logs) → `database/models/`
+- [ ] **1.1.8** 实现 `LogRepository` + 通用写入接口 → `database/repositories/log.py`
+- [x] **1.1.9** 验证全部表在 Supabase 中创建成功 → **37 张表确认** ✅
+- [x] **1.1.10** 实现 Repository 基类 + `StockRepository` → `database/repositories/base.py`, `stock.py`
+- [x] **1.1.11** 实现 `VectorRepository` + `UserRepository` → `database/repositories/vector.py`, `user.py`
 
-> ✅ **Phase 1.1 完成**: 2026-02-15
+> 🟦 **Phase 1.1 进行中**: 9/11 完成
 
 ### 1.2 数据获取管道
 - [x] **1.2.1** A 股日 K 线获取 (akshare) → `data_pipeline/akshare_fetcher.py`
@@ -62,7 +64,7 @@
 
 ### 2.1 Embedding 服务 (3 天)
 - [x] **2.1.1** 实现 `EmbeddingProvider` 抽象接口 → `services/embedding.py`
-- [x] **2.1.2** 实现 `OpenAIEmbedding` + `GeminiEmbedding` + `ZhipuEmbedding` 三个实现 → `services/embedding.py`
+- [x] **2.1.2** 实现 `OpenAIEmbedding` + `GeminiEmbedding` + `ZhipuEmbedding` 三个实现（MVP 测试默认不启用 Zhipu Embedding）→ `services/embedding.py`
 - [x] **2.1.3** 实现 `create_embedding_provider()` 工厂函数 (按 env 切换) → `services/embedding.py`
 - [x] **2.1.4** 单元测试: 向量维度 / 批量 embed / 异常处理 → `tests/unit/test_embedding.py`
 
@@ -101,6 +103,7 @@
 - [ ] **3.2.2** 实现实体提取 Prompt (`ENTITY_EXTRACTION_PROMPT`) → `agent/prompts/intent_prompt.py`
 - [ ] **3.2.3** 实现综合分析 Prompt (`SYNTHESIS_PROMPT`) → `agent/prompts/synthesis_prompt.py`
 - [ ] **3.2.4** 实现 Text-to-SQL Prompt + `build_few_shot_section()` → `agent/prompts/text_to_sql_prompt.py`
+- [ ] **3.2.5** 实现计划生成 Prompt (`PLANNER_PROMPT`) → `agent/prompts/planner_prompt.py`
 
 ### 3.3 数据模型 & 状态定义 (1 天)
 - [ ] **3.3.1** 定义 `AgentState` TypedDict → `agent/state.py`
@@ -133,7 +136,7 @@
 - [ ] **3.6.6** 条件路由函数: `should_decompose()`, `needs_more_data()` → `agent/graph.py`
 - [ ] **3.6.7** 集成测试: 端到端 Agent 调用 → `tests/test_agent.py`
 
-> 🟦 **Phase 3 进行中**: 3/28 完成
+> 🟦 **Phase 3 进行中**: 3/29 完成
 
 ---
 
@@ -144,6 +147,7 @@
 - [ ] **4.1.2** `POST /api/chat` — SSE 流式推送 → `api/chat.py`
 - [ ] **4.1.3** SSE 事件类型实现: status / result / [DONE] → `api/chat.py`
 - [ ] **4.1.4** `status_callback` 注入 Agent: 各节点实时推送状态 → `api/chat.py` + `agent/nodes/*.py`
+- [ ] **4.1.5** SSE 事件关联 `execution_log_id` → `api/chat.py`
 
 ### 4.2 会话管理 API (2 天)
 - [ ] **4.2.1** `GET /api/sessions` — 会话列表 → `api/session.py`
@@ -151,7 +155,7 @@
 - [ ] **4.2.3** `DELETE /api/sessions/{id}` — 归档会话 → `api/session.py`
 - [ ] **4.2.4** API 层单元测试 → `tests/test_api.py`
 
-> ⬜ **Phase 4 未开始**: 0/8 完成
+> ⬜ **Phase 4 未开始**: 0/9 完成
 
 ---
 
@@ -186,7 +190,7 @@
 - [ ] **6.3.1** 结构化日志 (structlog): 每步输出 JSON 日志 → 各模块
 - [ ] **6.3.2** `AgentExecutionLog` 持久化: 每步操作写入审计表 → `agent/nodes/*.py`
 - [ ] **6.3.3** Dockerfile + docker-compose.yml → `Dockerfile`, `docker-compose.yml`
-- [ ] **6.3.4** 健康检查端点 `GET /health` → `main.py`
+- [ ] **6.3.4** 健康检查端点 `GET /api/health` → `main.py`
 
 > ⬜ **Phase 6 未开始**: 0/11 完成
 
@@ -197,21 +201,22 @@
 | Phase | 总任务 | 已完成 | 进度 |
 |-------|--------|--------|------|
 | Phase 0 — 项目骨架 | 7 | 7 | 100% ✅ |
-| Phase 1.1 — Schema & Repository | 9 | 9 | 100% ✅ |
+| Phase 1.1 — Schema & Repository | 11 | 9 | 82% 🟦 |
 | Phase 1.2 — 数据获取管道 | 6 | 6 | 100% ✅ |
 | Phase 1.3 — 技术指标计算 | 4 | 4 | 100% ✅ |
 | Phase 2 — 向量层 (Embedding & RAG) | 17 | 16 | 94% 🟦 |
-| Phase 3 — Agent 核心 | 28 | 3 | 11% 🟦 |
-| Phase 4 — API 层 | 8 | 0 | 0% ⬜ |
+| Phase 3 — Agent 核心 | 29 | 3 | 10% 🟦 |
+| Phase 4 — API 层 | 9 | 0 | 0% ⬜ |
 | Phase 5 — 前端 | 6 | 0 | 0% ⬜ |
 | Phase 6 — 质量保障 & 部署 | 11 | 0 | 0% ⬜ |
-| **总计** | **96** | **45** | **47%** |
+| **总计** | **100** | **45** | **45%** |
 ---
 
 ## 下一步行动
 
 > 当前阻塞项: 无
 
-**Phase 1 已完成，建议并行开发:**
-- **Phase 2.3.5** (执行完整入库) — 目标 50-80 条 SQL 示例
-- **Phase 3.2** (Prompt 工程) — 纯模板开发，可与 Phase 2 并行
+**建议并行推进:**
+- **Phase 1.1.10 ~ 1.1.11**（补齐可观测性日志表与 Repository）
+- **Phase 2.3.5**（执行完整入库）— 目标 50-80 条 SQL 示例
+- **Phase 3.2**（Prompt 工程）— 纯模板开发，可与数据准备并行

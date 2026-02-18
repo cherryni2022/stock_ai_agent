@@ -382,7 +382,7 @@ SQL_MAX_ROWS=500
 
 | 表名 | 用途 |
 |------|------|
-| `stock_news_embeddings` | 新闻/公告向量 (VECTOR(1536)) |
+| `news_embeddings` | 新闻/公告向量 (VECTOR(1536)) |
 | `sql_examples_embeddings` | SQL 示例向量 (RAG 增强 Text-to-SQL) |
 | `conversation_embeddings` | 对话历史向量 (支持跨会话上下文检索) |
 

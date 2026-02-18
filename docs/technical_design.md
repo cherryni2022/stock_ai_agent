@@ -702,6 +702,27 @@ class AgentExecutionLog(Base):
     completed_at = Column(DateTime(timezone=True), comment="完成时间")
 ```
 
+#### 3.2.6 可观测性日志分层与写入时机（总账 + 明细账）
+
+为保证可追踪、可审计且可控成本，采用“三表分层”：
+
+1. **总账：`agent_execution_logs`（每次请求一条，必写）**
+   - 创建：`POST /api/chat` 收到请求后立即插入，生成 `execution_log_id`（即 `agent_execution_logs.id`），并在 SSE 的所有事件中携带该 id
+   - 更新：状态从 `pending` → `running` → `success/failed`；结束时写入 `final_response`、`duration_ms`、`completed_at`、`error_message`
+   - 内容：仅保留摘要信息（如 intent、sub_tasks 概览、tool_calls/llm_calls 概览），不存放完整 prompt/响应或大结果集
+
+2. **LLM 明细账：`llm_call_logs`（每次 LLM 调用一条，必写）**
+   - 范围：Intent/Planner/Synthesizer/Responder 等节点的 LLM 调用，以及工具内部（如 Text-to-SQL 生成 SQL、SQL 示例扩充）
+   - 关联：必须带 `execution_log_id` 与 `session_id`（必要时附 `node_name` / `tool_name` / attempt）
+   - 内容：记录耗时、tokens、错误、重试信息；prompt/response 按需截断或摘要，避免无限制落库
+
+3. **工具明细账：`tool_call_logs`（每次工具执行一条，必写）**
+   - 范围：所有工具调用（价格/指标/信号/财务/新闻/文本转 SQL/股票解析）均通过统一包装器写入
+   - 关联：必须带 `execution_log_id` 与 `session_id`（必要时附 `task_id` / tool_params 摘要）
+   - 内容：记录耗时、状态、错误、结果摘要（如 row_count/top_k/命中 ticker），不存放大体积结果
+
+> 说明：`agent_execution_logs.total_tokens/total_cost_usd` 可通过聚合 `llm_call_logs` 回填（增量或结束时汇总均可）。
+
 ### 3.3 向量数据模型 (`database/models/vector.py`)
 
 系统中有 **3 类信息** 需要向量化存储，用于不同的 RAG 场景。以下是每张向量表的详细设计。
@@ -710,65 +731,41 @@ class AgentExecutionLog(Base):
 
 | 向量表 | 数据内容 | RAG 用途 | 向量化对象 | 数据来源 |
 |--------|---------|---------|-----------|----------|
-| `stock_news_embeddings` | 新闻/公告 | 新闻语义检索 | `title + content_chunk` 拼接后向量化 | akshare (A股), yfinance (港股/美股) |
+| `news_embeddings` | 新闻/公告 | 新闻语义检索 | `title + content_chunk` 拼接后向量化 | akshare (A股), yfinance (港股/美股) |
 | `sql_examples_embeddings` | SQL 查询示例 | Text-to-SQL Few-shot 检索 | `question` (自然语言问题) 向量化 | 人工/LLM 预生成 |
 | `conversation_embeddings` | 对话历史摘要 | 跨会话上下文检索 | `content_summary` (对话摘要) 向量化 | 系统自动生成 |
 
 > [!IMPORTANT]
 > 所有向量表统一使用 `VECTOR(1536)` 维度，IVFFlat 索引 + 余弦相似度 (`vector_cosine_ops`)。
 
-#### 3.3.1 新闻向量表 (`stock_news_embeddings`)
+#### 3.3.1 新闻向量表 (`news_embeddings`)
 
 存储新闻/公告的分块向量。长文章按 ~500 token 分块，每块单独向量化。
 
 ```python
 from pgvector.sqlalchemy import Vector
 
-class StockNewsEmbedding(Base):
-    """新闻/公告向量嵌入表"""
-    __tablename__ = "stock_news_embeddings"
+class NewsEmbedding(Base):
+    """新闻向量嵌入表 — 存储新闻内容的分块向量"""
+    __tablename__ = "news_embeddings"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    
-    # ---- 内容字段 ----
-    source_type = Column(String(20), nullable=False, comment="news / announcement")
-    ticker = Column(String(20), index=True, comment="关联股票 (可为空=宏观新闻)")
-    market = Column(String(5), comment="CN / HK / US")
-    title = Column(Text, nullable=False, comment="新闻标题")
-    content = Column(Text, nullable=False, comment="原文内容 (或分块片段)")
-    chunk_index = Column(Integer, default=0, comment="分块索引 (0=不分块或第一块)")
-    total_chunks = Column(Integer, default=1, comment="该文章总块数")
-    
-    # ---- 元信息 ----
-    summary = Column(Text, comment="LLM 生成的摘要 (可选)")
-    sentiment = Column(String(10), comment="positive / negative / neutral")
-    published_at = Column(DateTime(timezone=True), index=True, comment="发布时间")
-    source = Column(String(100), comment="数据来源 (eastmoney / yahoo / ...)")
-    source_url = Column(Text, comment="原文链接")
-    
-    # ---- 向量 ----
-    embedding = Column(Vector(1536), comment="文本向量 (title+content 拼接后向量化)")
-    
-    # ---- 时间戳 ----
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    
-    __table_args__ = (
-        Index('idx_news_emb_ticker', 'ticker'),
-        Index('idx_news_emb_published', 'published_at'),
-        Index('idx_news_emb_source_type', 'source_type'),
-        Index('idx_news_emb_market', 'market'),
-        # pgvector 向量索引 (IVFFlat, 数据量大后可换 HNSW)
-        Index('idx_news_emb_vector', 'embedding',
-              postgresql_using='ivfflat',
-              postgresql_with={'lists': 100},
-              postgresql_ops={'embedding': 'vector_cosine_ops'}),
-    )
+    source_id = Column(String(64), nullable=False, index=True, comment="原始新闻 ID / hash")
+    ticker = Column(String(20), nullable=False, index=True, comment="关联股票代码")
+    market = Column(String(10), nullable=False, comment="市场: CN / HK / US")
+    title = Column(String(500), comment="新闻标题")
+    content_chunk = Column(Text, nullable=False, comment="新闻内容分块")
+    chunk_index = Column(Integer, default=0, comment="分块序号 (同一新闻多块)")
+    published_at = Column(DateTime(timezone=True), comment="新闻发布时间")
+    source = Column(String(100), comment="新闻来源")
+    sentiment_score = Column(Float, comment="情感分数 (-1 ~ 1)")
+    embedding = Column(Vector(1536), comment="向量嵌入")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 ```
 
 **向量化规则**：
-- **向量化对象**: 将 `title` 和 `content` 拼接为 `"{title}\n{content}"` 后传给 Embedding 模型
+- **向量化对象**: 将 `title` 和 `content_chunk` 拼接为 `"{title}\n{content_chunk}"` 后传给 Embedding 模型
 - **分块策略**: 按段落边界分块，每块 ~500 token，相邻块重叠 50 token
-- **每条新闻可能产生 1~N 条记录** (取决于长度)，通过 `chunk_index` 和 `total_chunks` 关联
 
 #### 3.3.2 SQL 示例向量表 (`sql_examples_embeddings`)
 
@@ -867,9 +864,9 @@ class ConversationEmbedding(Base):
 -- MVP 阶段查询示例 (IVFFlat)
 SET ivfflat.probes = 10;  -- 搜索时探测 10 个聚类
 
-SELECT id, title, content,
+SELECT id, title, content_chunk,
        1 - (embedding <=> $1::vector) AS similarity
-FROM stock_news_embeddings
+FROM news_embeddings
 WHERE ticker = '601127' AND published_at >= NOW() - INTERVAL '30 days'
 ORDER BY embedding <=> $1::vector
 LIMIT 10;
@@ -1498,15 +1495,15 @@ class RAGService:
             filters.append("ticker = :ticker")
             params["ticker"] = ticker
         if days:
-            filters.append("published_at >= NOW() - INTERVAL ':days days'")
-            params["days"] = days
+            filters.append("published_at >= NOW() - make_interval(days => :days)")
+            params["days"] = int(days)
         
         where_clause = " AND ".join(filters) if filters else "TRUE"
         
         query = f"""
-            SELECT id, ticker, title, content, source, published_at,
+            SELECT id, ticker, title, content_chunk, source, published_at,
                    1 - (embedding <=> :query_vec::vector) AS similarity
-            FROM stock_news_embeddings
+            FROM news_embeddings
             WHERE {where_clause}
             ORDER BY embedding <=> :query_vec::vector
             LIMIT :top_k
