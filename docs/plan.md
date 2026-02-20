@@ -329,12 +329,17 @@ from stock_agent.services.rag import RAGService
 
 ### 3.1 LLM 服务层 (2 天)
 
+> [!IMPORTANT]
+> **分工说明**: PydanticAI Agent 已原生提供**结构化输出**（`output_type`）和**校验重试**（`retries` + `ModelRetry`），
+> 因此 Agent 节点（Intent / Planner / Executor / Synthesizer / Responder）**不应调用** `structured_output()` 或 `llm_call_with_retry()`。
+> 这两个函数仅保留给**数据管道等非 Agent 场景**使用（如 `sql_examples_seeder.py` 的 LLM 批量扩充）。
+
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
-| 3.1.1 | 实现 LLM Provider 抽象 + 工厂 (OpenAI / Gemini / Zhipu) | `services/llm.py` | 0.2.1 | `create_llm_provider(settings)` 返回可用客户端 |
-| 3.1.2 | 实现 `structured_output()` — LLM 结构化输出 (JSON Schema) | `services/llm.py` | 3.1.1 | 返回 Pydantic 对象而非字符串 |
-| 3.1.3 | 实现 `llm_call_with_retry()` — tenacity 重试包装 | `services/llm.py` | 3.1.1 | 超时/限流重试 3 次 |
-| 3.1.4 | 实现 `create_pydantic_ai_model()` + 默认 model settings（对齐 PydanticAI `Agent(deps_type=..., output_type=...)`） | `services/llm.py` | 3.1.1 | Agent 节点可直接通过该工厂拿到 model 配置 |
+| 3.1.1 | 实现 LLM Provider 抽象 + 工厂 (OpenAI / Gemini / Zhipu) — *数据管道 + 非 Agent 场景使用* | `services/llm.py` | 0.2.1 | `create_llm_provider(settings)` 返回可用客户端 |
+| 3.1.2 | 实现 `structured_output()` — *数据管道专用*，手动 JSON Schema 注入 + Pydantic 校验 | `services/llm.py` | 3.1.1 | 返回 Pydantic 对象而非字符串（Agent 节点不使用此函数） |
+| 3.1.3 | 实现 `llm_call_with_retry()` — *数据管道专用*，tenacity 网络级重试包装 | `services/llm.py` | 3.1.1 | 超时/限流重试 3 次（Agent 节点不使用此函数） |
+| 3.1.4 | 实现 `create_pydantic_ai_model()` — **Agent 核心入口**，返回 PydanticAI `Model` 实例 + 默认 model settings；Agent 节点统一通过此工厂获取模型，结构化输出和重试由 PydanticAI 原生处理 | `services/llm.py` | 3.1.1 | `Agent(create_pydantic_ai_model(settings), output_type=..., retries=3)` 可正常运行 |
 
 > **参考**: [技术设计 §10.1](./technical_design.md) (重试策略) + [架构 §6](./architecture.md) (LLM Provider)
 
@@ -350,12 +355,13 @@ from stock_agent.services.rag import RAGService
 
 > **参考**: [技术设计 §9](./technical_design.md) (Prompt 工程) + [§8.3.8](./technical_design.md) (Text-to-SQL Prompt)
 
-### 3.3 数据模型 & 状态定义 (1 天)
+### 3.3 数据模型 & 状态定义 (1~2 天)
 
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
 | 3.3.1 | 定义 `AgentState` TypedDict（含 `user_input/messages_json/event_writer/execution_log_id`） | `agent/state.py` | — | 类型检查通过；state 可 JSON 序列化（除 event_writer 外） |
-| 3.3.2 | 定义 Pydantic 模型: `IntentClassification`, `ExtractedEntities`, `StockEntity`, `DecompositionPlan`, `SubTask`, `SynthesisOutput`, `FinalResponse` | `agent/state.py` | — | `.model_validate()` 测试通过（意图 6 大类与 PRD 一致，含 `sub_intent` 字段） |
+| 3.3.2 | 定义 Pydantic 模型: `IntentClassification`, `ExtractedEntities`, `StockEntity`, `DecompositionPlan`, `SubTask`, `SynthesisOutput`, `FinalResponse`, `ExecutorOutput` | `agent/state.py` | — | `.model_validate()` 测试通过（意图 6 大类与 PRD 一致，含 `sub_intent` 字段） |
+| 3.3.3 | 定义 `AgentDeps` dataclass（含 `settings` / `db_session_factory` / `embedding_service` / `rag_service`），作为所有 PydanticAI Agent 的 `deps_type` | `agent/state.py` | 0.2.1, 1.1.1, 2.1.3, 2.4.1 | `AgentDeps` 实例化无报错；可注入 PydanticAI Agent |
 
 > **参考**: [技术设计 §3.1](./technical_design.md) (核心数据模型)
 
@@ -365,7 +371,7 @@ from stock_agent.services.rag import RAGService
 |---|------|---------|------|---------|
 | 3.4.1 | 实现 `intent_node()`: 使用 PydanticAI `Agent(deps_type, output_type)` 输出意图+实体 | `agent/nodes/intent.py` | 3.1.4, 3.2.1, 3.2.2, 3.3.2 | 6 类意图正确分类，且 `sub_intent` 合理 |
 | 3.4.2 | 实现实体提取: 股票名称/代码/时间范围 → `ExtractedEntities` | `agent/nodes/intent.py` | 3.2.2, 3.3.2 | "帮我看看茅台最近的K线" → ticker=600519, period=recent |
-| 3.4.3 | 实现 `StockResolver` — 股票名称模糊解析 (精确→LIKE→向量) | `tools/stock_resolver.py` | 1.1.2 | "中芯国际" → 688981, "腾讯" → 0700.HK |
+| 3.4.3 | 实现 `StockResolver` — 股票名称模糊解析 (精确→LIKE→向量) + `TABLE_MAPPING` 市场表路由 + `get_table_name(market, table_type)` | `tools/stock_resolver.py` | 1.1.2 | "中芯国际" → 688981/CN, "腾讯" → 0700.HK/HK；`get_table_name(HK, "daily_price")` → `stock_daily_price_hk` |
 | 3.4.4 | 单元测试: 意图分类准确率 / 实体提取完整性 | `tests/test_intent.py` | 3.4.1~3.4.3 | 覆盖 QUOTE / TECHNICAL / COMPOSITE 等 |
 
 > **参考**: [技术设计 §4.2](./technical_design.md) (意图理解节点) + [§5.4](./technical_design.md) (StockResolver)
@@ -379,9 +385,9 @@ from stock_agent.services.rag import RAGService
 | 3.5.3 | `analyze_tech_signal_tool` — 策略信号查询 | `tools/tech_signal.py` | 1.1.2, 1.3.3 | 返回 5 类策略信号 + 置信度 |
 | 3.5.4 | `query_financial_data_tool` — 财务数据查询 | `tools/financial_data.py` | 1.1.2, 1.2.6 | 返回 PE / ROE / 营收等财务指标 |
 | 3.5.5 | `search_news_tool` — 新闻 RAG 语义检索 | `tools/news_search.py` | 2.4.1 | 返回 TOP-K 相似新闻 + similarity |
-| 3.5.6 | `text_to_sql_tool` — 自然语言 → SQL → 执行 | `tools/text_to_sql.py` | 2.4.2, 3.2.4 | "茅台最近的收盘价" → SELECT → 返回结果 |
+| 3.5.6 | `text_to_sql_tool` — 自然语言 → SQL → 执行（市场感知：根据 `market` 参数使用 `get_market_table_schemas(market)` 生成对应市场 DDL） | `tools/text_to_sql.py` | 2.4.2, 3.2.4, 3.4.3 | "茅台最近的收盘价" → 使用 `stock_daily_price` 表；"腾讯最近的收盘价" → 使用 `stock_daily_price_hk` 表 |
 | 3.5.7 | `validate_sql_safety()` — SQL 安全校验 (仅 SELECT) | `tools/text_to_sql.py` | — | INSERT/DELETE/DROP 被拒绝 |
-| 3.5.8 | 工具注册表 `TOOL_REGISTRY` | `tools/__init__.py` | 3.5.1~3.5.6 | 所有 6 个工具可按名称查找 |
+| 3.5.8 | 构建 `build_executor_agent()` — 创建 PydanticAI executor_agent，所有工具通过 `@executor_agent.tool` 注册（含 `RunContext[AgentDeps]` 依赖注入） | `tools/__init__.py` 或 `agent/nodes/tools.py` | 3.3.3, 3.5.1~3.5.6 | 所有 6 个工具通过 `executor_agent` 可调用；工具参数自动生成 JSON Schema |
 | 3.5.9 | 工具级容错包装 `safe_tool_execute()` | `tools/base.py` | — | 超时/异常返回 `{success: False}` 而非崩溃 |
 | 3.5.10 | 单元测试: 每个工具独立测试 | `tests/test_tools/` | 3.5.1~3.5.7 | `pytest tests/test_tools/` 全通过 |
 
@@ -392,7 +398,7 @@ from stock_agent.services.rag import RAGService
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
 | 3.6.1 | 实现 `planner_node()` — PydanticAI 输出 `DecompositionPlan`（tasks + execution_order） | `agent/nodes/planner.py` | 3.1.4, 3.3.2, 3.2.5 | 返回 `DecompositionPlan` 含 tasks + execution_order |
-| 3.6.2 | 实现 `executor_node()` — 按 DAG 拓扑并行执行工具 | `agent/nodes/executor.py` | 3.5.8 | 同层工具并行, 跨层串行 |
+| 3.6.2 | 实现 `executor_node()` — 双模式执行：确定性模式（plan 驱动，按 DAG 拓扑并行调用工具函数）+ LLM 驱动模式（PydanticAI Agent 自主选工具） | `agent/nodes/executor.py` | 3.5.8, 3.3.3 | 确定性模式：同层工具并行, 跨层串行；LLM 驱动模式：简单查询自动选工具返回结果 |
 | 3.6.3 | 实现 `synthesizer_node()` — PydanticAI 输出 `SynthesisOutput`（可选 token streaming） | `agent/nodes/synthesizer.py` | 3.1.4, 3.2.3 | 多数据源整合为结构化分析输出 |
 | 3.6.4 | 实现 `responder_node()` — PydanticAI 输出 `FinalResponse`（包含 disclaimer） | `agent/nodes/responder.py` | 3.6.3 | 输出 content + sources + disclaimer |
 | 3.6.5 | 实现 `build_agent_graph()` — 组装 StateGraph, 条件路由 | `agent/graph.py` | 3.4.1, 3.6.1~3.6.4 | 图编译成功 |

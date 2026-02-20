@@ -94,10 +94,13 @@
 ## Phase 3: Agent 核心 — 意图理解 + 工具 + 图编排
 
 ### 3.1 LLM 服务层 (2 天)
-- [x] **3.1.1** 实现 LLM Provider 抽象 + 工厂 (OpenAI / Gemini / Zhipu) → `services/llm.py`
-- [x] **3.1.2** 实现 `structured_output()` — LLM 结构化输出 (JSON Schema) → `services/llm.py`
-- [x] **3.1.3** 实现 `llm_call_with_retry()` — tenacity 重试包装 → `services/llm.py`
-- [ ] **3.1.4** 实现 `create_pydantic_ai_model()` + 默认 model settings（对齐 PydanticAI `Agent(deps_type=..., output_type=...)`）→ `services/llm.py`
+
+> **分工**: 3.1.1~3.1.3 用于数据管道等非 Agent 场景；Agent 节点统一通过 3.1.4 的 PydanticAI Model 工厂，结构化输出和重试由 PydanticAI 原生处理。
+
+- [x] **3.1.1** 实现 LLM Provider 抽象 + 工厂 (OpenAI / Gemini / Zhipu) — *数据管道 + 非 Agent 场景* → `services/llm.py`
+- [x] **3.1.2** 实现 `structured_output()` — *数据管道专用*，手动 JSON Schema + Pydantic 校验 → `services/llm.py`
+- [x] **3.1.3** 实现 `llm_call_with_retry()` — *数据管道专用*，tenacity 网络级重试 → `services/llm.py`
+- [ ] **3.1.4** 实现 `create_pydantic_ai_model()` — **Agent 核心入口**，返回 PydanticAI Model 实例 + 默认 model settings → `services/llm.py`
 
 ### 3.2 Prompt 工程 (2 天)
 - [ ] **3.2.1** 实现意图分类 Prompt (`INTENT_PROMPT`) → `agent/prompts/intent_prompt.py`
@@ -108,12 +111,13 @@
 
 ### 3.3 数据模型 & 状态定义 (1 天)
 - [ ] **3.3.1** 定义 `AgentState` TypedDict（含 `user_input/messages_json/event_writer/execution_log_id`）→ `agent/state.py`
-- [ ] **3.3.2** 定义 Pydantic 模型: IntentClassification, ExtractedEntities, DecompositionPlan, SynthesisOutput, FinalResponse 等 → `agent/state.py`
+- [ ] **3.3.2** 定义 Pydantic 模型: IntentClassification, ExtractedEntities, DecompositionPlan, SynthesisOutput, FinalResponse, ExecutorOutput 等 → `agent/state.py`
+- [ ] **3.3.3** 定义 `AgentDeps` dataclass（含 settings / db_session_factory / embedding_service / rag_service）→ `agent/state.py`
 
 ### 3.4 意图分类 & 实体提取节点 (4 天)
 - [ ] **3.4.1** 实现 `intent_node()`（PydanticAI Agent: deps_type/output_type）→ `agent/nodes/intent.py`
 - [ ] **3.4.2** 实现实体提取: 股票名称/代码/时间范围 → `agent/nodes/intent.py`
-- [ ] **3.4.3** 实现 `StockResolver` — 股票名称模糊解析 → `tools/stock_resolver.py`
+- [ ] **3.4.3** 实现 `StockResolver` — 股票名称模糊解析 + `TABLE_MAPPING` 市场表路由 + `get_table_name()` → `tools/stock_resolver.py`
 - [ ] **3.4.4** 单元测试: 意图分类准确率 / 实体提取完整性（覆盖 6 大类）→ `tests/test_intent.py`
 
 ### 3.5 工具实现 (5 天)
@@ -122,22 +126,22 @@
 - [ ] **3.5.3** `analyze_tech_signal_tool` — 策略信号查询 → `tools/tech_signal.py`
 - [ ] **3.5.4** `query_financial_data_tool` — 财务数据查询 → `tools/financial_data.py`
 - [ ] **3.5.5** `search_news_tool` — 新闻 RAG 语义检索 → `tools/news_search.py`
-- [ ] **3.5.6** `text_to_sql_tool` — 自然语言 → SQL → 执行 → `tools/text_to_sql.py`
+- [ ] **3.5.6** `text_to_sql_tool` — 自然语言 → SQL → 执行（市场感知：根据 market 使用对应 DDL）→ `tools/text_to_sql.py`
 - [ ] **3.5.7** `validate_sql_safety()` — SQL 安全校验 (仅 SELECT) → `tools/text_to_sql.py`
-- [ ] **3.5.8** 工具注册表 `TOOL_REGISTRY` → `tools/__init__.py`
+- [ ] **3.5.8** 构建 `build_executor_agent()` — PydanticAI executor_agent，工具通过 `@executor_agent.tool` 注册 → `tools/__init__.py` 或 `agent/nodes/tools.py`
 - [ ] **3.5.9** 工具级容错包装 `safe_tool_execute()` → `tools/base.py`
 - [ ] **3.5.10** 单元测试: 每个工具独立测试 → `tests/test_tools/`
 
 ### 3.6 LangGraph 编排 & 综合分析 (4 天)
 - [ ] **3.6.1** 实现 `planner_node()`（PydanticAI 输出 `DecompositionPlan`）→ `agent/nodes/planner.py`
-- [ ] **3.6.2** 实现 `executor_node()` — 按 DAG 拓扑并行执行工具 → `agent/nodes/executor.py`
+- [ ] **3.6.2** 实现 `executor_node()` — 双模式执行（确定性/LLM驱动）+ DAG 拓扑并行 → `agent/nodes/executor.py`
 - [ ] **3.6.3** 实现 `synthesizer_node()`（PydanticAI 输出 `SynthesisOutput`，可选 token streaming）→ `agent/nodes/synthesizer.py`
 - [ ] **3.6.4** 实现 `responder_node()`（PydanticAI 输出 `FinalResponse`）→ `agent/nodes/responder.py`
 - [ ] **3.6.5** 实现 `build_agent_graph()` — 组装 StateGraph, 条件路由 → `agent/graph.py`
 - [ ] **3.6.6** 条件路由函数: `should_decompose()`, `needs_more_data()` → `agent/graph.py`
 - [ ] **3.6.7** 集成测试: 端到端 Agent 调用 → `tests/test_agent.py`
 
-> 🟦 **Phase 3 进行中**: 3/30 完成
+> 🟦 **Phase 3 进行中**: 3/31 完成
 
 ---
 
@@ -206,76 +210,26 @@
 | Phase 1.2 — 数据获取管道 | 6 | 6 | 100% ✅ |
 | Phase 1.3 — 技术指标计算 | 4 | 4 | 100% ✅ |
 | Phase 2 — 向量层 (Embedding & RAG) | 17 | 16 | 94% 🟦 |
-| Phase 3 — Agent 核心 | 30 | 3 | 10% 🟦 |
+| Phase 3 — Agent 核心 | 31 | 3 | 10% 🟦 |
 | Phase 4 — API 层 | 9 | 0 | 0% ⬜ |
 | Phase 5 — 前端 | 6 | 0 | 0% ⬜ |
 | Phase 6 — 质量保障 & 部署 | 11 | 0 | 0% ⬜ |
-| **总计** | **101** | **47** | **47%** |
+| **总计** | **102** | **47** | **46%** |
 ---
-
-## 里程碑包（可交付增量）
-
-### M0：可观测性地基（明细账落库）
-- 关联任务：**1.1.7 ~ 1.1.8**
-- 交付物：`llm_call_logs` / `tool_call_logs` 模型与 `LogRepository`
-- 验收：可写入并按 `execution_log_id` 查询回放；后续节点/工具可统一复用写入接口
-
-### M1：Text-to-SQL Few-shot 数据补全
-- 关联任务：**2.3.5**
-- 交付物：`sql_examples_embeddings` 表数据量达到 50–80 条
-- 验收：覆盖 price/indicator/signal/financial/meta/composite，且全部为只读 SELECT
-
-### M2：Prompt 工程包（LLM“输入合同”）
-- 关联任务：**3.2.1 ~ 3.2.5**
-- 交付物：意图/实体/综合分析/Text-to-SQL/Planner 五份 Prompt 模板文件
-- 验收：模板可直接格式化；输出格式与约束（仅 SELECT、日期字段规范等）清晰
-
-### M3：Agent 状态与数据模型包
-- 关联任务：**3.3.1 ~ 3.3.2**
-- 交付物：`AgentState` + 关键 Pydantic 模型（Intent/Entities/Plan/SubTask 等）
-- 验收：类型检查通过；核心模型 `.model_validate()` 可用
-
-### M4：意图理解最小闭环（Intent + 实体 + 股票解析）
-- 关联任务：**3.4.1 ~ 3.4.4**
-- 交付物：`intent_node()` + `StockResolver` + 单元测试
-- 验收：可稳定解析 ticker/market/time_range，并正确判断 `requires_decomposition`
-
-### M5：核心工具集（含统一容错）
-- 关联任务：**3.5.1 ~ 3.5.10**
-- 交付物：价格/指标/信号/财务/新闻/Text-to-SQL 工具 + `safe_tool_execute()` + `TOOL_REGISTRY`
-- 验收：每个工具至少 1 个正常用例 + 1 个空/异常用例；Text-to-SQL 通过安全校验且限制返回行数
-
-### M6：LangGraph 端到端 Agent（可本地跑通）
-- 关联任务：**3.6.1 ~ 3.6.7**
-- 交付物：planner/executor/synthesizer/responder 节点 + `build_agent_graph()` + 集成测试
-- 验收：简单问题与复杂问题两条路径都可跑通，工具失败可降级不崩溃
-
-### M7：FastAPI + SSE MVP（对外可用）
-- 关联任务：**4.1.1 ~ 4.2.4**
-- 交付物：`/api/chat` SSE + 会话管理接口 + API 测试
-- 验收：SSE 状态流与事件格式符合约定，且全程携带 `execution_log_id`
-
-### M8：Streamlit MVP（可交互 UI）
-- 关联任务：**5.1.1 ~ 5.1.6**
-- 交付物：Streamlit 对话 UI + SSE 消费 + 状态/结果展示
-- 验收：可完整体验一次“提问 → 状态推进 → 输出结果/来源/风险提示”
-
-### M9：质量保障 & 部署收口
-- 关联任务：**6.1.1 ~ 6.3.4**
-- 交付物：E2E/精度/容错/性能测试 + 全局异常 + 健康检查 + Docker
-- 验收：关键用例可回归；服务可被健康检查验证；可容器化启动
 
 ## 下一步行动
 
 > 当前阻塞项: 无
 
 **建议并行推进:**
-- **M0（1.1.7 ~ 1.1.8）**：补齐可观测性日志明细账 + LogRepository
-- **M1（2.3.5）**：SQL 示例完整入库（目标 50–80 条）
-- **M2（3.2.x）**：Prompt 工程（纯模板开发）
-- **M3（3.3.x）**：状态与数据模型定义
+- **2.3.5** SQL 示例完整入库（目标 50–80 条）— 补齐 Phase 2 最后一个任务
+- **3.1.4** `create_pydantic_ai_model()` — Agent 核心依赖
+- **3.2.x** Prompt 工程（5 份模板，纯模板开发，无依赖）
+- **3.3.x** 状态与数据模型定义（含 `AgentDeps`）
 
 **推荐交付顺序:**
-- **M0 + M2**（可并行）
-- **M1 + M3**（可并行）
-- **M4 → M5 → M6 → M7 → M8 → M9**
+1. `2.3.5` + `3.1.4` + `3.2.x` + `3.3.x`（可并行）
+2. `3.4.x`（意图理解 + StockResolver）
+3. `3.5.x`（工具实现）
+4. `3.6.x`（LangGraph 编排）
+5. `4.x` → `5.x` → `6.x`
