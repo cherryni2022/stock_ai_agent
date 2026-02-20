@@ -758,7 +758,7 @@ class AgentExecutionLog(Base):
 
 #### 3.3.1 新闻向量表 (`news_embeddings`)
 
-存储新闻/公告的分块向量。长文章按 ~500 token 分块，每块单独向量化。
+新闻数据统一存储在 `news_embeddings` 表中（无单独的原始新闻表）。该表同时承担“新闻原始内容存储”与“向量检索”双重职责：每条记录包含新闻的 title、content_chunk、source、published_at 等元数据，同时持有 embedding 向量用于语义检索。长文章按 ~500 token 分块，每块单独向量化。
 
 ```python
 from pgvector.sqlalchemy import Vector
@@ -830,7 +830,8 @@ class SQLExampleEmbedding(Base):
 
 #### 3.3.3 对话历史向量表 (`conversation_embeddings`)
 
-存储对话摘要的向量，用于跨会话的上下文检索（如 "我上次问过的那只股票"）。
+> [!NOTE]
+> MVP 阶段，该表仅用于存储用户对话数据（用户问题 + Agent 回答的摘要），不做复杂的跨会话上下文检索。后续可扩展为跨会话 RAG 检索（如 "我上次问过的那只股票"）。
 
 ```python
 class ConversationEmbedding(Base):
@@ -936,21 +937,85 @@ class AgentDeps:
     rag_service: Any
 ```
 
-#### 4.0.2 节点与 PydanticAI Agent 映射
+#### 4.0.2 节点与 PydanticAI Agent 映射 — PydanticAI 核心化
 
-LLM 相关节点使用 PydanticAI 定义 “输入依赖 + 输出类型 + 可用工具”，LangGraph 负责把节点串起来：
+> [!IMPORTANT]
+> 所有节点统一通过 PydanticAI 实现，包括 ExecutorNode。PydanticAI 在系统中承担三大核心职责：
+> 1. **结构化输出** — IntentNode/PlannerNode/SynthesizerNode/ResponderNode 通过 `output_type` 保证类型安全
+> 2. **工具调用** — ExecutorNode 的所有工具通过 `@agent.tool` 注册，由 PydanticAI 管理参数校验与依赖注入
+> 3. **对话上下文** — 所有节点通过 `messages_json` 共享 PydanticAI 序列化的对话历史
 
-| LangGraph 节点 | PydanticAI Agent | output_type (强类型输出) | tools (可调用工具) | deps |
+| LangGraph 节点 | PydanticAI Agent | output_type | @agent.tool 注册工具 | deps |
 |---|---|---|---|---|
-| IntentNode | intent_agent | IntentNodeOutput | 无 | AgentDeps |
-| PlannerNode | planner_agent | DecompositionPlan | 无 | AgentDeps |
-| ExecutorNode | （非 LLM 节点） | — | query_stock_price / query_tech_indicator / analyze_tech_signal / query_financial_data / search_news / text_to_sql / stock_resolver | AgentDeps |
-| SynthesizerNode | synthesizer_agent | SynthesisOutput | 无 | AgentDeps |
-| ResponderNode | responder_agent | FinalResponse | 无 | AgentDeps |
+| IntentNode | intent_agent | `IntentNodeOutput` | 无 | AgentDeps |
+| PlannerNode | planner_agent | `DecompositionPlan` | 无 | AgentDeps |
+| ExecutorNode | executor_agent | `ExecutorOutput` | `query_stock_price` / `query_tech_indicator` / `analyze_tech_signal` / `query_financial_data` / `search_news` / `text_to_sql` | AgentDeps |
+| SynthesizerNode | synthesizer_agent | `SynthesisOutput` | 无 | AgentDeps |
+| ResponderNode | responder_agent | `FinalResponse` | 无 | AgentDeps |
 
-说明：
-- IntentNode/PlannerNode/SynthesizerNode/ResponderNode 的核心价值是 “结构化输出 + 校验重试”，适合交给 PydanticAI 管理 output_type。
-- ExecutorNode 是否引入 “LLM 选择工具/补全参数” 属于可选项；MVP 推荐按 `plan.execution_order` 直接执行确定性工具，减少不确定性与成本。
+**ExecutorNode 的 PydanticAI 工具注册模式**：
+
+所有工具使用 `@executor_agent.tool` 装饰器注册，通过 `RunContext[AgentDeps]` 注入数据库会话、Embedding 服务等依赖。工具参数由 PydanticAI 自动从 type hints 生成 JSON Schema，LLM 或执行计划均可驱动调用。
+
+```python
+from pydantic_ai import Agent, RunContext
+
+executor_agent = Agent(
+    create_pydantic_ai_model(settings),
+    deps_type=AgentDeps,
+    output_type=ExecutorOutput,
+    system_prompt=EXECUTOR_PROMPT,
+)
+
+
+@executor_agent.tool
+async def query_stock_price(
+    ctx: RunContext[AgentDeps], ticker: str, days: int = 30, market: str = "CN"
+) -> dict:
+    """查询股票历史价格数据。
+
+    Args:
+        ticker: 股票代码 (如 '601127', '0700.HK', 'AAPL')
+        days: 查询天数，默认30天
+        market: 市场类型 CN/HK/US
+    """
+    table_name = get_table_name(MarketType(market), "daily_price")
+    async with ctx.deps.db_session_factory() as session:
+        result = await session.execute(
+            sql_text(f"SELECT * FROM {table_name} WHERE ticker = :ticker ORDER BY trade_date DESC LIMIT :days"),
+            {"ticker": ticker, "days": days},
+        )
+        return [dict(row._mapping) for row in result.fetchall()]
+
+
+@executor_agent.tool
+async def search_news(
+    ctx: RunContext[AgentDeps], query: str, ticker: str | None = None, top_k: int = 10
+) -> list[dict]:
+    """语义搜索相关新闻（RAG向量检索）。
+
+    Args:
+        query: 搜索关键词或自然语言描述
+        ticker: 可选，限定股票代码过滤
+        top_k: 返回结果数量，默认10
+    """
+    query_vector = await ctx.deps.embedding_service.embed_query(query)
+    return await ctx.deps.rag_service.search_news(
+        query_vector=query_vector, ticker=ticker, top_k=top_k
+    )
+
+
+# ... 其他工具同理：query_tech_indicator, analyze_tech_signal, query_financial_data, text_to_sql
+```
+
+**ExecutorNode 双模式执行策略**：
+
+| 模式 | 触发条件 | 行为 | 适用场景 |
+|------|----------|------|----------|
+| **确定性模式** (默认) | `plan` 存在且 `plan.tasks` 非空 | 按 `plan.execution_order` 确定性调用工具，不让 LLM 选工具 | 复杂分析/多步骤 |
+| **LLM 驱动模式** | `plan` 为空 + 简单意图 (QUOTE/KNOWLEDGE) | 让 PydanticAI Agent 自行选择工具和参数 | 简单直接查询 |
+
+确定性模式下，每个 SubTask 的 `tool_name + tool_params` 由 PlannerNode 生成，ExecutorNode 直接用 PydanticAI 的 tool 函数执行（绕过 LLM 选工具流程，降低成本）。LLM 驱动模式下，PydanticAI Agent 根据用户问题自主决定调用哪些工具。
 
 #### 4.0.3 PydanticAI 对话上下文持久化（messages_json）
 
@@ -1125,133 +1190,137 @@ async def intent_node(state: AgentState, *, deps: AgentDeps) -> dict:
 
 ### 4.3 执行器节点 (`nodes/executor.py`)
 
+ExecutorNode 使用 PydanticAI Agent 管理工具。所有工具通过 `@executor_agent.tool` 注册（详见 Section 4.0.2），ExecutorNode 支持双模式执行。
+
 ```python
 import asyncio
-from ..state import AgentState, SubTask, TaskStatus
+import time
+from pydantic_ai import Agent, RunContext
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+from ..state import AgentState, SubTask, TaskStatus, AgentDeps
+from .tools import build_executor_agent  # 包含所有 @agent.tool 注册
 
 
-# 工具注册表
-TOOL_REGISTRY: dict[str, callable] = {
-    "query_stock_price": query_stock_price_tool,
-    "query_tech_indicator": query_tech_indicator_tool,
-    "analyze_tech_signal": analyze_tech_signal_tool,
-    "query_financial_data": query_financial_data_tool,
-    "search_news": search_news_tool,
-    "text_to_sql": text_to_sql_tool,
-}
+class ExecutorOutput(BaseModel):
+    """ExecutorNode 在 LLM 驱动模式下的输出"""
+    tool_results: dict[str, Any] = {}
+    summary: str = ""
 
 
-async def executor_node(state: AgentState) -> dict:
-    """按 DAG 拓扑序执行工具，支持层级并行"""
+async def executor_node(state: AgentState, *, deps: AgentDeps) -> dict:
+    """执行器节点 — 双模式工具调用
+
+    确定性模式: plan 存在时，按 execution_order 逐层并行调用 PydanticAI 工具函数
+    LLM 驱动模式: plan 为空时，让 PydanticAI Agent 自主选择工具和参数
+    """
+    if state.get("event_writer"):
+        await state["event_writer"]({"type": "status", "status": "retrieving"})
+
     plan = state.get("plan")
+
+    # ---- LLM 驱动模式 (简单查询，无 plan) ----
+    if not plan:
+        return await _llm_driven_execute(state, deps)
+
+    # ---- 确定性模式 (有 plan，按 DAG 拓扑执行) ----
+    return await _plan_driven_execute(state, deps, plan)
+
+
+async def _llm_driven_execute(state: AgentState, deps: AgentDeps) -> dict:
+    """LLM 驱动模式 — PydanticAI Agent 自主选择工具"""
+    history = []
+    for blob in state.get("messages_json", []):
+        history += ModelMessagesTypeAdapter.validate_json(blob)
+
+    executor = build_executor_agent(deps)
+    result = await executor.run(
+        state["user_input"],
+        deps=deps,
+        message_history=history,
+    )
+
+    return {
+        "tool_results": {"llm_driven": result.output.tool_results},
+        "sources": [{"tool_name": "llm_driven", "mode": "auto"}],
+        "messages_json": [result.new_messages_json()],
+    }
+
+
+async def _plan_driven_execute(state: AgentState, deps: AgentDeps, plan) -> dict:
+    """确定性模式 — 按 plan.execution_order 分层并行执行"""
     tool_results = dict(state.get("tool_results", {}))
     tool_errors = dict(state.get("tool_errors", {}))
     sources = list(state.get("sources", []))
-    
-    if not plan:
-        # 简单查询：根据 intent/sub_intent 生成最小执行计划（单层/单任务）
-        plan = build_direct_plan(
-            user_input=state["user_input"],
-            intent=state["intent"],
-            entities=state["entities"],
-            resolved_stocks=state["resolved_stocks"],
-        )
-    
-    # 按 execution_order 分层并行执行
+
+    # 获取已注册的 PydanticAI 工具函数引用
+    executor = build_executor_agent(deps)
+    tool_registry = {t.name: t for t in executor._toolsets}  # PydanticAI 工具注册表
+
     for layer_idx, layer_task_ids in enumerate(plan.execution_order):
         if layer_idx < state.get("current_layer", 0):
-            continue  # 跳过已完成层
-        
-        # 收集本层就绪任务
+            continue
+
         ready_tasks = [
             t for t in plan.tasks
             if t.task_id in layer_task_ids and t.status == TaskStatus.PENDING
         ]
-        
-        # SSE 推送当前步骤
+
         if state.get("event_writer"):
             await state["event_writer"]({
-                "type": "status",
-                "status": "retrieving",
+                "type": "status", "status": "retrieving",
                 "steps": [{"task_id": t.task_id, "tool": t.tool_name} for t in ready_tasks],
             })
-        
-        # 并行执行本层所有任务
+
         async def run_task(task: SubTask):
-            tool_fn = TOOL_REGISTRY.get(task.tool_name)
-            if not tool_fn:
-                task.status = TaskStatus.FAILED
-                task.error = f"Unknown tool: {task.tool_name}"
-                return
+            start_time = time.monotonic()
             try:
                 if state.get("event_writer"):
-                    await state["event_writer"](
-                        {
-                            "type": "step",
-                            "step_name": task.tool_name,
-                            "status": "running",
-                            "params": task.tool_params,
-                            "task_id": task.task_id,
-                        }
-                    )
+                    await state["event_writer"]({
+                        "type": "step", "step_name": task.tool_name,
+                        "status": "running", "params": task.tool_params, "task_id": task.task_id,
+                    })
+
                 task.status = TaskStatus.RUNNING
+
+                # 通过 PydanticAI 工具名查找并执行 (绕过 LLM，直接调用工具函数)
+                tool_fn = _get_tool_function(task.tool_name)
                 result = await asyncio.wait_for(
-                    tool_fn(state, **task.tool_params),
-                    timeout=get_settings().TOOL_TIMEOUT_SECONDS,
+                    tool_fn(deps, **task.tool_params),
+                    timeout=deps.settings.TOOL_TIMEOUT_SECONDS,
                 )
+
                 task.status = TaskStatus.COMPLETED
+                task.duration_ms = int((time.monotonic() - start_time) * 1000)
                 task.result = result
                 tool_results[task.task_id] = result
-                sources.append(
-                    {
-                        "task_id": task.task_id,
-                        "tool_name": task.tool_name,
-                        "tool_params": task.tool_params,
-                    }
-                )
+                sources.append({
+                    "task_id": task.task_id,
+                    "tool_name": task.tool_name,
+                    "tool_params": task.tool_params,
+                    "duration_ms": task.duration_ms,
+                })
+
                 if state.get("event_writer"):
-                    await state["event_writer"](
-                        {
-                            "type": "step",
-                            "step_name": task.tool_name,
-                            "status": "completed",
-                            "params": task.tool_params,
-                            "task_id": task.task_id,
-                        }
-                    )
-            except asyncio.TimeoutError:
+                    await state["event_writer"]({
+                        "type": "step", "step_name": task.tool_name,
+                        "status": "completed", "task_id": task.task_id,
+                        "duration_ms": task.duration_ms,
+                    })
+
+            except (asyncio.TimeoutError, Exception) as e:
                 task.status = TaskStatus.FAILED
-                task.error = "Tool execution timeout"
+                task.error = "Tool execution timeout" if isinstance(e, asyncio.TimeoutError) else str(e)
+                task.duration_ms = int((time.monotonic() - start_time) * 1000)
                 tool_errors[task.task_id] = task.error
                 if state.get("event_writer"):
-                    await state["event_writer"](
-                        {
-                            "type": "step",
-                            "step_name": task.tool_name,
-                            "status": "failed",
-                            "params": task.tool_params,
-                            "task_id": task.task_id,
-                            "error": task.error,
-                        }
-                    )
-            except Exception as e:
-                task.status = TaskStatus.FAILED
-                task.error = str(e)
-                tool_errors[task.task_id] = task.error
-                if state.get("event_writer"):
-                    await state["event_writer"](
-                        {
-                            "type": "step",
-                            "step_name": task.tool_name,
-                            "status": "failed",
-                            "params": task.tool_params,
-                            "task_id": task.task_id,
-                            "error": task.error,
-                        }
-                    )
-        
+                    await state["event_writer"]({
+                        "type": "step", "step_name": task.tool_name,
+                        "status": "failed", "task_id": task.task_id,
+                        "error": task.error, "duration_ms": task.duration_ms,
+                    })
+
         await asyncio.gather(*[run_task(t) for t in ready_tasks])
-    
+
     return {
         "tool_results": tool_results,
         "tool_errors": tool_errors,
@@ -1259,6 +1328,30 @@ async def executor_node(state: AgentState) -> dict:
         "current_layer": min(state.get("current_layer", 0) + 1, len(plan.execution_order)),
         "plan": plan,
     }
+
+
+# ---- PydanticAI 工具直接调用表 ----
+# 确定性模式下绕过 LLM，直接调用 @agent.tool 注册的函数
+from .tools import (
+    query_stock_price, query_tech_indicator, analyze_tech_signal,
+    query_financial_data, search_news, text_to_sql,
+)
+
+_TOOL_FUNCTIONS = {
+    "query_stock_price": query_stock_price,
+    "query_tech_indicator": query_tech_indicator,
+    "analyze_tech_signal": analyze_tech_signal,
+    "query_financial_data": query_financial_data,
+    "search_news": search_news,
+    "text_to_sql": text_to_sql,
+}
+
+
+def _get_tool_function(tool_name: str):
+    fn = _TOOL_FUNCTIONS.get(tool_name)
+    if not fn:
+        raise ValueError(f"Unknown tool: {tool_name}")
+    return fn
 ```
 
 ### 4.4 规划节点 (`nodes/planner.py`)
@@ -1404,44 +1497,54 @@ async def responder_node(state: AgentState, *, deps: AgentDeps) -> dict:
 
 ### 5.1 股票价格查询 (`tools/stock_price.py`)
 
+工具根据 `market` 参数通过 `get_table_name()` 路由到正确的市场表：
+
 ```python
 from pydantic import BaseModel, Field
+from sqlalchemy import text as sql_text
+from .stock_resolver import get_table_name, MarketType
 
 
 class StockPriceParams(BaseModel):
     ticker: str
     days: int = Field(default=30, ge=1, le=365)
-    market: str = "CN"
+    market: MarketType = MarketType.CN
 
 
 class StockPriceResult(BaseModel):
     ticker: str
     market: str
+    table_used: str       # 实际查询的表名 (可观测性)
     records: list[dict]   # [{trade_date, open, close, high, low, volume}, ...]
     latest_close: float | None
     period: str
 
 
 async def query_stock_price_tool(state: AgentState, **kwargs) -> StockPriceResult:
-    """查询股票价格数据"""
+    """查询股票价格数据 — 根据市场自动路由到对应表"""
     params = StockPriceParams(**kwargs) if kwargs else _extract_params(state)
     
-    query = (
-        select(StockDailyPrice)
-        .where(StockDailyPrice.ticker == params.ticker)
-        .order_by(StockDailyPrice.trade_date.desc())
-        .limit(params.days)
-    )
+    # 根据市场获取对应的表名
+    table_name = get_table_name(params.market, "daily_price")
+    
+    query = sql_text(f"""
+        SELECT ticker, trade_date, open, close, high, low, volume, pct_chg, turnover_rate
+        FROM {table_name}
+        WHERE ticker = :ticker
+        ORDER BY trade_date DESC
+        LIMIT :days
+    """)
     
     async with db_session() as session:
-        results = await session.execute(query)
-        records = results.scalars().all()
+        result = await session.execute(query, {"ticker": params.ticker, "days": params.days})
+        records = [dict(row._mapping) for row in result.fetchall()]
     
     return StockPriceResult(
         ticker=params.ticker,
-        market=params.market,
-        records=[row_to_dict(r) for r in reversed(records)],
-        latest_close=records[0].close if records else None,
+        market=params.market.value,
+        table_used=table_name,
+        records=list(reversed(records)),
+        latest_close=records[0]["close"] if records else None,
         period=f"最近{params.days}日",
     )
 ```
@@ -1504,17 +1607,21 @@ class TextToSQLResult(BaseModel):
 
 
 async def text_to_sql_tool(state: AgentState, **kwargs) -> TextToSQLResult:
-    """自然语言 → SQL 查询"""
+    """自然语言 → SQL 查询（市场感知）"""
     question = kwargs.get("question", state["user_input"])
+    market = kwargs.get("market", "CN")  # 由 StockResolver 解析出的市场
     
-    # Step 1: RAG 检索相似 SQL 示例
+    # Step 1: RAG 检索相似 SQL 示例 (按 market 过滤)
     embedding_svc = get_embedding_service()
     q_vector = await embedding_svc.embed_query(question)
-    similar_examples = await rag_service.search_sql_examples(q_vector, top_k=3)
+    similar_examples = await rag_service.search_sql_examples(
+        q_vector, top_k=3, market=market
+    )
     
-    # Step 2: 构建 prompt (Schema + Few-shot Examples)
+    # Step 2: 构建 prompt (市场特定 Schema + Few-shot Examples)
+    # get_market_table_schemas(market) 返回该市场对应表的 CREATE TABLE DDL
     prompt = TEXT_TO_SQL_PROMPT.format(
-        schema=get_table_schemas(),
+        schema=get_market_table_schemas(market),
         examples=format_sql_examples(similar_examples),
         question=question,
     )
@@ -1552,9 +1659,93 @@ def validate_sql_safety(sql: str) -> bool:
     return sql_upper.startswith("SELECT") and not any(kw in sql_upper for kw in forbidden)
 ```
 
-### 5.4 股票名称解析 (`tools/stock_resolver.py`)
+### 5.4 股票名称解析与市场表路由 (`tools/stock_resolver.py`)
+
+股票解析器不仅负责名称→ticker 解析，还提供 **市场→SQL表名** 的路由映射。由于乘市场的结构化数据分布在不同的表中（A股 `stock_daily_price`、港股 `stock_daily_price_hk`、美股 `stock_daily_price_us`），工具层必须根据解析出的 `MarketType` 映射到正确的表名。
 
 ```python
+from ..state import MarketType, StockEntity
+
+
+# ---- 市场 → SQL 表名映射 ----
+# 各工具通过 get_table_name(market, table_type) 获取对应的表名
+
+TABLE_MAPPING: dict[str, dict[MarketType, str]] = {
+    "daily_price": {
+        MarketType.CN: "stock_daily_price",
+        MarketType.HK: "stock_daily_price_hk",
+        MarketType.US: "stock_daily_price_us",
+    },
+    "technical_indicators": {
+        MarketType.CN: "stock_technical_indicators",
+        MarketType.HK: "stock_technical_indicators_hk",
+        MarketType.US: "stock_technical_indicators_us",
+    },
+    "trend_signal": {
+        MarketType.CN: "stock_technical_trend_signal_indicators",
+        MarketType.HK: "stock_technical_trend_signal_indicators_hk",
+        MarketType.US: "stock_technical_trend_signal_indicators_us",
+    },
+    "mean_reversion_signal": {
+        MarketType.CN: "stock_technical_mean_reversion_signal_indicators",
+        MarketType.HK: "stock_technical_mean_reversion_signal_indicators_hk",
+        MarketType.US: "stock_technical_mean_reversion_signal_indicators_us",
+    },
+    "momentum_signal": {
+        MarketType.CN: "stock_technical_momentum_signal_indicators",
+        MarketType.HK: "stock_technical_momentum_signal_indicators_hk",
+        MarketType.US: "stock_technical_momentum_signal_indicators_us",
+    },
+    "volatility_signal": {
+        MarketType.CN: "stock_technical_volatility_signal_indicators",
+        MarketType.HK: "stock_technical_volatility_signal_indicators_hk",
+        MarketType.US: "stock_technical_volatility_signal_indicators_us",
+    },
+    "stat_arb_signal": {
+        MarketType.CN: "stock_technical_stat_arb_signal_indicators",
+        MarketType.HK: "stock_technical_stat_arb_signal_indicators_hk",
+        MarketType.US: "stock_technical_stat_arb_signal_indicators_us",
+    },
+    "financial_metrics": {
+        MarketType.CN: "financial_metrics",
+        MarketType.HK: "financial_metrics_hk",
+        MarketType.US: "financial_metrics_us",
+    },
+    "basic_info": {
+        MarketType.CN: "stock_basic_info",
+        MarketType.HK: "stock_basic_hk",
+        MarketType.US: "stock_basic_us",
+    },
+    "company_info": {
+        MarketType.CN: "stock_company_info",
+        MarketType.HK: "stock_company_info_hk",
+        MarketType.US: "stock_company_info_us",
+    },
+}
+
+
+def get_table_name(market: MarketType, table_type: str) -> str:
+    """根据市场和表类型获取实际表名
+    
+    Args:
+        market: 市场类型 (CN / HK / US)
+        table_type: 表类型键名 (daily_price / technical_indicators / financial_metrics 等)
+    
+    Returns:
+        对应的数据库表名
+    
+    Raises:
+        ValueError: 如果表类型或市场不存在
+    """
+    mapping = TABLE_MAPPING.get(table_type)
+    if not mapping:
+        raise ValueError(f"Unknown table_type: {table_type}")
+    table_name = mapping.get(market)
+    if not table_name:
+        raise ValueError(f"No table for market={market} table_type={table_type}")
+    return table_name
+
+
 class StockResolver:
     """基于 stock_basic_info 的模糊股票名称解析"""
     
@@ -2983,23 +3174,49 @@ def build_few_shot_section(examples: list[dict]) -> str:
 INTENT_PROMPT = """你是一个股票分析 Agent 的意图分类模块。
 
 ## 任务
-分析用户的问题，输出结构化的意图分类结果。
+分析用户的问题，输出结构化的意图分类结果，包括 primary_intent（6 大类别之一）、sub_intent（18 个子类别之一）、confidence（0~1）、reasoning（分类理由）和 requires_decomposition（是否需要问题拆解）。
 
-## 6 大意图类别
-1. simple_query: 简单事实查询 (价格、基本信息)
-2. technical_analysis: 技术分析 (K线、指标、策略信号)
-3. financial_analysis: 基本面/财务分析 (PE、ROE、营收)
-4. news_sentiment: 新闻舆情分析
-5. composite: 综合分析 (多维度交叉)
-6. comparison: 对比分析 (多只股票)
+## 6 大意图类别与 18 子类别
+
+### 1. QUOTE — 行情价格类
+- `quote.price`: 查询某股票的价格/K线 (如 "GOOGLE 最近的股价表现")
+- `quote.change`: 查询涨跌幅 (如 "茅台最近一周涨了多少")
+- `quote.compare`: 多股价格/涨跌幅对比 (如 "对比万科和保利3个月涨跌幅")
+
+### 2. TECHNICAL — 技术分析类
+- `tech.indicator`: 查询技术指标值 (如 "宁德时代的 MACD 指标")
+- `tech.signal`: 买卖信号判断 (如 "赛力斯是否有买入信号")
+- `tech.pattern`: 趋势/形态判断 (如 "腾讯目前是上升趋势吗")
+
+### 3. FUNDAMENTAL — 基本面分析类
+- `fund.data`: 查询财务指标 (如 "茅台2025年的ROE")
+- `fund.analysis`: 财务健康分析 (如 "宁德时代财务健康状况")
+- `fund.valuation`: 估值分析 (如 "比亚迪估值是否合理")
+
+### 4. NEWS_EVENT — 信息事件类
+- `news.company`: 公司相关新闻 (如 "快手最近有什么利好消息")
+- `news.industry`: 行业新闻/政策 (如 "新能源行业最新政策")
+- `news.sentiment`: 舆情分析 (如 "隆基绿能有负面新闻吗")
+
+### 5. COMPOSITE — 综合分析类
+- `composite.full`: 多维度综合分析 (如 "从技术面和基本面分析茅台")
+- `composite.screen`: 条件筛选 (如 "找出医药行业ROE>15%且上升趋势的股票")
+- `composite.risk`: 风险评估 (如 "结合快手AI业务分析风险和走势")
+
+### 6. KNOWLEDGE — 知识科普类
+- `knowledge.concept`: 概念解释 (如 "什么是 MACD 金叉")
+- `knowledge.education`: 方法教学 (如 "杜邦分析法怎么用")
+- `knowledge.usage`: 使用方法 (如 "RSI 超买超卖的阈值是什么")
 
 ## 判断 requires_decomposition
 - 涉及多个工具 → True
 - 包含 "结合"/"综合"/"分析" 等词 → True
+- COMPOSITE 类别 → True
+- KNOWLEDGE 类别 → False (直接由 LLM 回答)
 - 简单查询单一数据 → False
 
 ## 输出格式
-严格按 IntentClassification schema 输出 JSON。
+严格按 IntentClassification schema 输出 JSON，其中 primary_intent 必须是 QUOTE / TECHNICAL / FUNDAMENTAL / NEWS_EVENT / COMPOSITE / KNOWLEDGE 之一，sub_intent 必须是上述 18 个子类别标签之一。
 """
 ```
 
