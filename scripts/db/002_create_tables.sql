@@ -970,3 +970,49 @@ CREATE TABLE IF NOT EXISTS agent_execution_logs (
     completed_at    TIMESTAMPTZ
 );
 COMMENT ON TABLE agent_execution_logs IS 'Agent 执行日志表';
+
+
+-- ************************************************************
+-- 7. 可观测性明细账表 — 来源: llm_call_log.py / tool_call_log.py
+-- ************************************************************
+
+CREATE TABLE IF NOT EXISTS llm_call_logs (
+    id              SERIAL PRIMARY KEY,
+    execution_log_id INTEGER NOT NULL REFERENCES agent_execution_logs(id) ON DELETE CASCADE,
+    session_id      VARCHAR(36),
+    user_id         VARCHAR(36),
+    node_name       VARCHAR(50),
+    provider        VARCHAR(20),
+    model           VARCHAR(100),
+    attempt         INTEGER DEFAULT 1,
+    prompt_summary  TEXT,
+    response_summary TEXT,
+    extra           JSONB,
+    input_tokens    INTEGER DEFAULT 0,
+    output_tokens   INTEGER DEFAULT 0,
+    total_tokens    INTEGER DEFAULT 0,
+    cost_usd        DOUBLE PRECISION DEFAULT 0.0,
+    status          VARCHAR(20) DEFAULT 'success',
+    error_message   TEXT,
+    duration_ms     INTEGER,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+COMMENT ON TABLE llm_call_logs IS 'LLM 调用明细账';
+
+CREATE TABLE IF NOT EXISTS tool_call_logs (
+    id              SERIAL PRIMARY KEY,
+    execution_log_id INTEGER NOT NULL REFERENCES agent_execution_logs(id) ON DELETE CASCADE,
+    session_id      VARCHAR(36),
+    user_id         VARCHAR(36),
+    task_id         VARCHAR(50),
+    tool_name       VARCHAR(80) NOT NULL,
+    tool_params     JSONB,
+    status          VARCHAR(20) DEFAULT 'success',
+    result_summary  JSONB,
+    row_count       INTEGER,
+    similarity_top  DOUBLE PRECISION,
+    error_message   TEXT,
+    duration_ms     INTEGER,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+COMMENT ON TABLE tool_call_logs IS '工具调用明细账';

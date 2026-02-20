@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS chat_sessions            CASCADE;
 DROP TABLE IF EXISTS users                    CASCADE;
 
 -- 2. Agent 日志
+DROP TABLE IF EXISTS tool_call_logs          CASCADE;
+DROP TABLE IF EXISTS llm_call_logs           CASCADE;
 DROP TABLE IF EXISTS agent_execution_logs     CASCADE;
 
 -- 3. 向量嵌入

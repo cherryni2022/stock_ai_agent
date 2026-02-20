@@ -191,3 +191,13 @@ CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions (user_id);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages (session_id);
 
 CREATE INDEX IF NOT EXISTS idx_agent_execution_logs_session_id ON agent_execution_logs (session_id);
+
+CREATE INDEX IF NOT EXISTS idx_llm_call_logs_execution_log_id ON llm_call_logs (execution_log_id);
+CREATE INDEX IF NOT EXISTS idx_llm_call_logs_session_id ON llm_call_logs (session_id);
+CREATE INDEX IF NOT EXISTS idx_llm_call_logs_node_name ON llm_call_logs (node_name);
+CREATE INDEX IF NOT EXISTS idx_llm_call_logs_created_at ON llm_call_logs (created_at);
+
+CREATE INDEX IF NOT EXISTS idx_tool_call_logs_execution_log_id ON tool_call_logs (execution_log_id);
+CREATE INDEX IF NOT EXISTS idx_tool_call_logs_session_id ON tool_call_logs (session_id);
+CREATE INDEX IF NOT EXISTS idx_tool_call_logs_tool_name ON tool_call_logs (tool_name);
+CREATE INDEX IF NOT EXISTS idx_tool_call_logs_created_at ON tool_call_logs (created_at);

@@ -10,6 +10,8 @@
 BEGIN;
 
 -- 1. Agent 日志
+TRUNCATE TABLE tool_call_logs      RESTART IDENTITY CASCADE;
+TRUNCATE TABLE llm_call_logs       RESTART IDENTITY CASCADE;
 TRUNCATE TABLE agent_execution_logs RESTART IDENTITY CASCADE;
 
 -- 2. 对话相关 (子→父)

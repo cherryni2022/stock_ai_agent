@@ -1,6 +1,6 @@
 # Stock AI Agent — 任务进度跟踪
 
-> **最后更新**: 2026-02-18
+> **最后更新**: 2026-02-20
 >
 > **对应计划**: [开发计划](./plan.md)
 
@@ -32,13 +32,13 @@
 - [x] **1.1.4** 迁移美股数据模型 (11 表) → `database/models/stock_us.py`
 - [x] **1.1.5** 创建向量嵌入表 (3 张) → `database/models/vector.py`
 - [x] **1.1.6** 创建用户/会话/日志表 → `database/models/user.py`, `database/models/agent_log.py`
-- [ ] **1.1.7** 创建可观测性日志表 (llm_call_logs / tool_call_logs) → `database/models/`
-- [ ] **1.1.8** 实现 `LogRepository` + 通用写入接口 → `database/repositories/log.py`
+- [x] **1.1.7** 创建可观测性日志表 (llm_call_logs / tool_call_logs) → `database/models/`
+- [x] **1.1.8** 实现 `LogRepository` + 通用写入接口 → `database/repositories/log.py`
 - [x] **1.1.9** 验证全部表在 Supabase 中创建成功 → **37 张表确认** ✅
 - [x] **1.1.10** 实现 Repository 基类 + `StockRepository` → `database/repositories/base.py`, `stock.py`
 - [x] **1.1.11** 实现 `VectorRepository` + `UserRepository` → `database/repositories/vector.py`, `user.py`
 
-> 🟦 **Phase 1.1 进行中**: 9/11 完成
+> ✅ **Phase 1.1 完成**: 2026-02-20
 
 ### 1.2 数据获取管道
 - [x] **1.2.1** A 股日 K 线获取 (akshare) → `data_pipeline/akshare_fetcher.py`
@@ -202,7 +202,7 @@
 | Phase | 总任务 | 已完成 | 进度 |
 |-------|--------|--------|------|
 | Phase 0 — 项目骨架 | 7 | 7 | 100% ✅ |
-| Phase 1.1 — Schema & Repository | 11 | 9 | 82% 🟦 |
+| Phase 1.1 — Schema & Repository | 11 | 11 | 100% ✅ |
 | Phase 1.2 — 数据获取管道 | 6 | 6 | 100% ✅ |
 | Phase 1.3 — 技术指标计算 | 4 | 4 | 100% ✅ |
 | Phase 2 — 向量层 (Embedding & RAG) | 17 | 16 | 94% 🟦 |
@@ -210,7 +210,7 @@
 | Phase 4 — API 层 | 9 | 0 | 0% ⬜ |
 | Phase 5 — 前端 | 6 | 0 | 0% ⬜ |
 | Phase 6 — 质量保障 & 部署 | 11 | 0 | 0% ⬜ |
-| **总计** | **101** | **45** | **45%** |
+| **总计** | **101** | **47** | **47%** |
 ---
 
 ## 里程碑包（可交付增量）

@@ -43,16 +43,26 @@ from stock_agent.database.models.stock_us import (
     StockTechnicalVolatilitySignalIndicatorsUSDB,
 )
 
-# Vector models
-from stock_agent.database.models.vector import (
-    ConversationEmbedding,
-    NewsEmbedding,
-    SqlExampleEmbedding,
-)
+try:
+    from stock_agent.database.models.vector import (
+        ConversationEmbedding,
+        NewsEmbedding,
+        SqlExampleEmbedding,
+    )
+
+    _VECTOR_MODELS = [
+        "NewsEmbedding",
+        "SqlExampleEmbedding",
+        "ConversationEmbedding",
+    ]
+except ModuleNotFoundError:
+    _VECTOR_MODELS = []
 
 # User / Session / Log models
 from stock_agent.database.models.user import ChatMessage, ChatSession, User
 from stock_agent.database.models.agent_log import AgentExecutionLog
+from stock_agent.database.models.llm_call_log import LLMCallLog
+from stock_agent.database.models.tool_call_log import ToolCallLog
 
 __all__ = [
     # A-share
@@ -89,13 +99,12 @@ __all__ = [
     "StockIndexBasicUSDB",
     "FinancialMetricsUSDB",
     "StockBasicInfoUSDB",
-    # Vector
-    "NewsEmbedding",
-    "SqlExampleEmbedding",
-    "ConversationEmbedding",
+    *_VECTOR_MODELS,
     # User / Session
     "User",
     "ChatSession",
     "ChatMessage",
     "AgentExecutionLog",
+    "LLMCallLog",
+    "ToolCallLog",
 ]
