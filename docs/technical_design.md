@@ -149,8 +149,6 @@ def get_settings() -> Settings:
 ```python
 from typing import Annotated, Any
 from typing_extensions import TypedDict
-from langgraph.graph.message import add_messages
-from langchain_core.messages import BaseMessage
 from pydantic import BaseModel, Field
 from enum import Enum
 
@@ -159,21 +157,21 @@ from enum import Enum
 
 class IntentCategory(str, Enum):
     """6 大意图类别"""
-    SIMPLE_QUERY = "simple_query"           # 简单事实查询
-    TECHNICAL_ANALYSIS = "technical_analysis" # 技术分析
-    FINANCIAL_ANALYSIS = "financial_analysis" # 财务分析
-    NEWS_SENTIMENT = "news_sentiment"         # 新闻舆情
-    COMPOSITE = "composite"                   # 综合分析
-    COMPARISON = "comparison"                 # 对比分析
+    QUOTE = "QUOTE"
+    TECHNICAL = "TECHNICAL"
+    FUNDAMENTAL = "FUNDAMENTAL"
+    NEWS_EVENT = "NEWS_EVENT"
+    COMPOSITE = "COMPOSITE"
+    KNOWLEDGE = "KNOWLEDGE"
 
 
 class IntentClassification(BaseModel):
     """LLM 结构化输出的意图分类结果"""
-    category: IntentCategory
+    primary_intent: IntentCategory
+    sub_intent: str
     confidence: float = Field(ge=0, le=1)
     reasoning: str                            # LLM 分类理由
     requires_decomposition: bool = False       # 是否需要问题拆解
-    suggested_tools: list[str] = []            # 建议使用的工具
 
 
 # ---- 实体提取 ----
@@ -239,6 +237,22 @@ class DecompositionPlan(BaseModel):
     execution_order: list[list[str]]  # [[并行层1 task_ids], [并行层2], ...]
 
 
+# ---- 分析与最终输出 ----
+
+class SynthesisOutput(BaseModel):
+    summary: str
+    key_points: list[str] = []
+    risks: list[str] = []
+    missing_data: list[str] = []
+    confidence: float = Field(ge=0, le=1)
+
+
+class FinalResponse(BaseModel):
+    content: str
+    sources: list[dict[str, Any]] = []
+    disclaimer: str
+
+
 # ---- LangGraph 全局状态 ----
 
 class AgentState(TypedDict):
@@ -246,12 +260,14 @@ class AgentState(TypedDict):
     # 对话上下文
     session_id: str
     user_id: str
-    messages: Annotated[list[BaseMessage], add_messages]
+    execution_log_id: str
+    user_input: str
+    messages_json: Annotated[list[bytes], lambda x, y: x + y]
     
     # 意图理解结果
     intent: IntentClassification | None
     entities: ExtractedEntities | None
-    resolved_stocks: list[StockEntity]
+    resolved_stocks: list[dict[str, Any]]
     
     # 执行计划
     plan: DecompositionPlan | None
@@ -259,13 +275,15 @@ class AgentState(TypedDict):
     
     # 工具执行结果
     tool_results: dict[str, Any]     # task_id → result
+    tool_errors: dict[str, str]      # task_id → error message
+    sources: list[dict[str, Any]]    # 可序列化引用信息，供综合分析/最终回答使用
     
-    # SSE 状态推送回调
-    status_callback: Any             # async callable for SSE
+    # SSE/Streaming 推送回调（所有节点统一通过该回调推送事件）
+    event_writer: Any                # async callable: (event: dict) -> None
     
     # 最终输出
-    analysis_result: str
-    data_sources: list[str]
+    analysis_result: SynthesisOutput | None
+    final_response: FinalResponse | None
     risk_disclaimer: str
 ```
 
@@ -888,6 +906,16 @@ LIMIT 10;
 | LangGraph | 状态承载、节点路由、循环/分支、并行调度、失败回退 | 可观测、可控的执行流程 |
 | PydanticAI | 结构化输出校验、工具调用协议、依赖注入 (deps)、可选流式输出 | 更强的类型安全与更少的解析样板代码 |
 
+#### 4.0.0 设计目标（与 PRD 对齐）
+
+Agent 的核心闭环与 PRD 保持一致：意图理解 →（可选）问题拆解 → 分层并行检索/计算 → 结果检查循环 → 综合分析 → 最终回答。
+
+工程侧关键目标：
+- **强类型**：LLM 节点统一使用 PydanticAI `Agent(deps_type=..., output_type=...)` 输出 Pydantic 模型，减少手写 JSON 解析与漂移。
+- **确定性执行**：ExecutorNode 默认不让 LLM “选工具”，按 `plan.execution_order` 确定性执行，降低不确定性与成本。
+- **可序列化与可观测**：LangGraph state 中的工具结果/引用信息必须可 JSON 序列化；所有节点统一通过 `event_writer` 推送 SSE/Streaming 事件。
+- **不使用 LangChain 消息体系**：对话上下文与 message history 使用 PydanticAI 的 message 序列化能力（`messages_json`），避免把 `BaseMessage` 放进 state。
+
 #### 4.0.1 Deps 设计 (RunContext.deps)
 
 节点与工具需要的依赖通过 `deps` 注入，避免全局变量，便于测试与替换实现：
@@ -924,7 +952,23 @@ LLM 相关节点使用 PydanticAI 定义 “输入依赖 + 输出类型 + 可用
 - IntentNode/PlannerNode/SynthesizerNode/ResponderNode 的核心价值是 “结构化输出 + 校验重试”，适合交给 PydanticAI 管理 output_type。
 - ExecutorNode 是否引入 “LLM 选择工具/补全参数” 属于可选项；MVP 推荐按 `plan.execution_order` 直接执行确定性工具，减少不确定性与成本。
 
-#### 4.0.3 LLM 输出字段：强类型 vs 可序列化
+#### 4.0.3 PydanticAI 对话上下文持久化（messages_json）
+
+LangGraph state 内持久化 message history 采用 `messages_json`，每次 PydanticAI Agent 运行后，把 `result.new_messages_json()` 追加回 state，形成可重放的对话轨迹：
+
+```python
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+
+history = []
+for blob in state.get("messages_json", []):
+    history += ModelMessagesTypeAdapter.validate_json(blob)
+```
+
+设计约束：
+- state 内只存 **序列化后的 message**（bytes / str 均可），避免存放不可序列化对象。
+- 节点只返回需要更新的字段 dict，不返回完整 state。
+
+#### 4.0.4 LLM 输出字段：强类型 vs 可序列化
 
 LangGraph state 建议按 “强类型输出” 与 “可序列化结果” 分层，确保可持久化与可观测：
 
@@ -938,7 +982,7 @@ LangGraph state 建议按 “强类型输出” 与 “可序列化结果” 分
 | analysis_result | LLM 输出（强类型） | SynthesisOutput | 综合分析结构 |
 | final_response | LLM 输出（强类型） | FinalResponse | 最终回复结构 |
 
-#### 4.0.4 SSE 事件映射
+#### 4.0.5 SSE 事件映射
 
 SSE 推送以 LangGraph 节点边界为主、以工具调用/LLM token 为细粒度补充：
 
@@ -952,9 +996,26 @@ SSE 推送以 LangGraph 节点边界为主、以工具调用/LLM token 为细粒
 
 status 建议阶段枚举与 PRD/架构保持一致（analyzing / planning / retrieving / thinking / completed / failed），step 事件以 `tool_name + params + duration_ms + status` 为最小集，保证前端可渲染可追踪。
 
+#### 4.0.6 LLM 服务与 PydanticAI 对齐（替代 structured_output 样板）
+
+当前仓库已有 `stock_agent/services/llm.py` 的 `structured_output()`（JSON Schema + retry）实现。Phase 3 建议把“结构化输出 + 校验 + 重试”职责交给 PydanticAI：
+- LLM 交互统一通过 `pydantic_ai.Agent(..., output_type=...)` 完成结构化输出与校验。
+- provider/模型选择与参数（temperature/max_tokens/base_url/api_key）由一个“PydanticAI Model 工厂”统一提供，复用现有 Settings（`LLM_PROVIDER/LLM_MODEL/LLM_BASE_URL/LLM_API_KEY`）。
+- `services/llm.py` 的角色从“自建协议 + JSON Schema 约束”收敛为“提供 PydanticAI 可用的 model 配置/实例 + 默认 model settings”。
+
+推荐接口（示意）：
+
+```python
+def create_pydantic_ai_model(settings: Settings) -> Any:
+    ...
+```
+
+节点侧只依赖 `AgentDeps.settings` 与该工厂，不再直接调用 `structured_output()`。
+
 ### 4.1 LangGraph 图构建
 
 ```python
+from functools import partial
 from langgraph.graph import StateGraph, END
 from .state import AgentState
 from .nodes.intent import intent_node
@@ -981,17 +1042,17 @@ def needs_more_data(state: AgentState) -> str:
     return "synthesizer"
 
 
-def build_agent_graph() -> StateGraph:
+def build_agent_graph(deps: AgentDeps) -> Any:
     """构建 Agent 状态图"""
     graph = StateGraph(AgentState)
     
     # 添加节点
-    graph.add_node("intent", intent_node)
-    graph.add_node("planner", planner_node)
+    graph.add_node("intent", partial(intent_node, deps=deps))
+    graph.add_node("planner", partial(planner_node, deps=deps))
     graph.add_node("executor", executor_node)
     graph.add_node("result_check", lambda s: s)  # passthrough
-    graph.add_node("synthesizer", synthesizer_node)
-    graph.add_node("responder", responder_node)
+    graph.add_node("synthesizer", partial(synthesizer_node, deps=deps))
+    graph.add_node("responder", partial(responder_node, deps=deps))
     
     # 定义边
     graph.set_entry_point("intent")
@@ -1012,50 +1073,53 @@ def build_agent_graph() -> StateGraph:
 
 
 # 全局 agent 实例
-agent = build_agent_graph()
+agent = build_agent_graph(deps)
 ```
 
 ### 4.2 意图理解节点 (`nodes/intent.py`)
 
 ```python
-async def intent_node(state: AgentState) -> dict:
-    """意图分类 + 实体提取 + 股票解析"""
-    user_message = state["messages"][-1].content
-    
-    # Step 1: LLM 结构化输出 — 意图分类
-    intent = await llm.structured_output(
-        messages=[
-            SystemMessage(content=INTENT_PROMPT),
-            HumanMessage(content=user_message),
-        ],
-        schema=IntentClassification,
+from pydantic_ai import Agent
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+
+
+class IntentNodeOutput(BaseModel):
+    intent: IntentClassification
+    entities: ExtractedEntities
+
+
+def build_intent_agent(deps: AgentDeps) -> Agent[AgentDeps, IntentNodeOutput]:
+    model = create_pydantic_ai_model(deps.settings)
+    return Agent(
+        model,
+        deps_type=AgentDeps,
+        output_type=IntentNodeOutput,
+        system_prompt=INTENT_PROMPT,
     )
-    
-    # Step 2: LLM 结构化输出 — 实体提取
-    entities = await llm.structured_output(
-        messages=[
-            SystemMessage(content=ENTITY_EXTRACTION_PROMPT),
-            HumanMessage(content=user_message),
-        ],
-        schema=ExtractedEntities,
-    )
-    
-    # Step 3: 股票名称解析 (查库匹配)
-    resolver = StockResolver(db_session)
-    resolved_stocks = []
-    for stock in entities.stocks:
-        resolved = await resolver.resolve(stock.raw_input or stock.name)
+
+
+async def intent_node(state: AgentState, *, deps: AgentDeps) -> dict:
+    if state.get("event_writer"):
+        await state["event_writer"]({"type": "status", "status": "analyzing"})
+
+    history = []
+    for blob in state.get("messages_json", []):
+        history += ModelMessagesTypeAdapter.validate_json(blob)
+
+    agent = build_intent_agent(deps)
+    result = await agent.run(state["user_input"], deps=deps, message_history=history)
+
+    resolved_stocks: list[dict[str, Any]] = []
+    for stock in result.output.entities.stocks:
+        resolved = await deps.stock_repo.resolve_stock(stock.raw_input or stock.name)
         if resolved:
             resolved_stocks.append(resolved)
-    
-    # SSE 推送状态
-    if state.get("status_callback"):
-        await state["status_callback"]({"type": "status", "status": "analyzing"})
-    
+
     return {
-        "intent": intent,
-        "entities": entities,
+        "intent": result.output.intent,
+        "entities": result.output.entities,
         "resolved_stocks": resolved_stocks,
+        "messages_json": [result.new_messages_json()],
     }
 ```
 
@@ -1081,14 +1145,17 @@ async def executor_node(state: AgentState) -> dict:
     """按 DAG 拓扑序执行工具，支持层级并行"""
     plan = state.get("plan")
     tool_results = dict(state.get("tool_results", {}))
+    tool_errors = dict(state.get("tool_errors", {}))
+    sources = list(state.get("sources", []))
     
     if not plan:
-        # 简单查询 — 直接调用单个工具
-        tool_name = state["intent"].suggested_tools[0]
-        tool_fn = TOOL_REGISTRY[tool_name]
-        result = await tool_fn(state)
-        tool_results["direct"] = result
-        return {"tool_results": tool_results}
+        # 简单查询：根据 intent/sub_intent 生成最小执行计划（单层/单任务）
+        plan = build_direct_plan(
+            user_input=state["user_input"],
+            intent=state["intent"],
+            entities=state["entities"],
+            resolved_stocks=state["resolved_stocks"],
+        )
     
     # 按 execution_order 分层并行执行
     for layer_idx, layer_task_ids in enumerate(plan.execution_order):
@@ -1102,8 +1169,8 @@ async def executor_node(state: AgentState) -> dict:
         ]
         
         # SSE 推送当前步骤
-        if state.get("status_callback"):
-            await state["status_callback"]({
+        if state.get("event_writer"):
+            await state["event_writer"]({
                 "type": "status",
                 "status": "retrieving",
                 "steps": [{"task_id": t.task_id, "tool": t.tool_name} for t in ready_tasks],
@@ -1117,6 +1184,16 @@ async def executor_node(state: AgentState) -> dict:
                 task.error = f"Unknown tool: {task.tool_name}"
                 return
             try:
+                if state.get("event_writer"):
+                    await state["event_writer"](
+                        {
+                            "type": "step",
+                            "step_name": task.tool_name,
+                            "status": "running",
+                            "params": task.tool_params,
+                            "task_id": task.task_id,
+                        }
+                    )
                 task.status = TaskStatus.RUNNING
                 result = await asyncio.wait_for(
                     tool_fn(state, **task.tool_params),
@@ -1125,19 +1202,199 @@ async def executor_node(state: AgentState) -> dict:
                 task.status = TaskStatus.COMPLETED
                 task.result = result
                 tool_results[task.task_id] = result
+                sources.append(
+                    {
+                        "task_id": task.task_id,
+                        "tool_name": task.tool_name,
+                        "tool_params": task.tool_params,
+                    }
+                )
+                if state.get("event_writer"):
+                    await state["event_writer"](
+                        {
+                            "type": "step",
+                            "step_name": task.tool_name,
+                            "status": "completed",
+                            "params": task.tool_params,
+                            "task_id": task.task_id,
+                        }
+                    )
             except asyncio.TimeoutError:
                 task.status = TaskStatus.FAILED
                 task.error = "Tool execution timeout"
+                tool_errors[task.task_id] = task.error
+                if state.get("event_writer"):
+                    await state["event_writer"](
+                        {
+                            "type": "step",
+                            "step_name": task.tool_name,
+                            "status": "failed",
+                            "params": task.tool_params,
+                            "task_id": task.task_id,
+                            "error": task.error,
+                        }
+                    )
             except Exception as e:
                 task.status = TaskStatus.FAILED
                 task.error = str(e)
+                tool_errors[task.task_id] = task.error
+                if state.get("event_writer"):
+                    await state["event_writer"](
+                        {
+                            "type": "step",
+                            "step_name": task.tool_name,
+                            "status": "failed",
+                            "params": task.tool_params,
+                            "task_id": task.task_id,
+                            "error": task.error,
+                        }
+                    )
         
         await asyncio.gather(*[run_task(t) for t in ready_tasks])
     
     return {
         "tool_results": tool_results,
-        "current_layer": len(plan.execution_order),
+        "tool_errors": tool_errors,
+        "sources": sources,
+        "current_layer": min(state.get("current_layer", 0) + 1, len(plan.execution_order)),
         "plan": plan,
+    }
+```
+
+### 4.4 规划节点 (`nodes/planner.py`)
+
+规划节点仅在 `intent.requires_decomposition = true` 时触发，用 PydanticAI 输出强类型 `DecompositionPlan`，并把工具调用限制在“允许的工具集合”内（避免生成不存在的 tool）。
+
+```python
+from pydantic_ai import Agent
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+
+
+def build_planner_agent(deps: AgentDeps) -> Agent[AgentDeps, DecompositionPlan]:
+    model = create_pydantic_ai_model(deps.settings)
+    return Agent(
+        model,
+        deps_type=AgentDeps,
+        output_type=DecompositionPlan,
+        system_prompt=PLANNER_PROMPT,
+    )
+
+
+async def planner_node(state: AgentState, *, deps: AgentDeps) -> dict:
+    if state.get("event_writer"):
+        await state["event_writer"]({"type": "status", "status": "planning"})
+
+    history = []
+    for blob in state.get("messages_json", []):
+        history += ModelMessagesTypeAdapter.validate_json(blob)
+
+    planner = build_planner_agent(deps)
+    result = await planner.run(state["user_input"], deps=deps, message_history=history)
+    return {
+        "plan": result.output,
+        "current_layer": 0,
+        "messages_json": [result.new_messages_json()],
+    }
+```
+
+### 4.5 结果检查与循环 (`result_check`)
+
+ResultCheck 的目标是让图的控制流完全确定性化：不依赖 LLM 判断“够不够数据”，只看 plan/task 的显式状态。
+
+路由策略建议：
+- 存在 `pending` 任务：继续执行 `executor`
+- 全部 `completed`：进入 `synthesizer`
+- 存在 `failed` 且不可降级：进入 `responder`（用失败解释兜底）
+
+### 4.6 综合分析节点 (`nodes/synthesizer.py`)
+
+综合分析节点把 `tool_results + sources` 转换为结构化 `SynthesisOutput`。该节点是最适合开启 token streaming 的位置之一（用户能及时看到“深度思考”过程的增量文本）。
+
+```python
+from pydantic_ai import Agent
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+
+
+def build_synthesizer_agent(deps: AgentDeps) -> Agent[AgentDeps, SynthesisOutput]:
+    model = create_pydantic_ai_model(deps.settings)
+    return Agent(
+        model,
+        deps_type=AgentDeps,
+        output_type=SynthesisOutput,
+        system_prompt=SYNTHESIS_PROMPT,
+    )
+
+
+async def synthesizer_node(state: AgentState, *, deps: AgentDeps) -> dict:
+    if state.get("event_writer"):
+        await state["event_writer"]({"type": "status", "status": "thinking"})
+
+    history = []
+    for blob in state.get("messages_json", []):
+        history += ModelMessagesTypeAdapter.validate_json(blob)
+
+    agent = build_synthesizer_agent(deps)
+    prompt = build_synthesis_input(
+        user_input=state["user_input"],
+        intent=state["intent"],
+        entities=state["entities"],
+        resolved_stocks=state["resolved_stocks"],
+        tool_results=state["tool_results"],
+        sources=state["sources"],
+        tool_errors=state["tool_errors"],
+    )
+
+    async with agent.run_stream(prompt, deps=deps, message_history=history) as result:
+        async for delta in result.stream_text(delta=True):
+            if state.get("event_writer"):
+                await state["event_writer"]({"type": "token", "content": delta})
+
+    return {
+        "analysis_result": result.output,
+        "messages_json": [result.new_messages_json()],
+    }
+```
+
+### 4.7 回复生成节点 (`nodes/responder.py`)
+
+ResponderNode 负责把 `analysis_result + sources + 风险提示` 转成前端可直接渲染的 `FinalResponse`。最终 `result` 事件建议由 API 层统一推送（避免节点重复发最终事件），节点只负责产出 `final_response` 字段。
+
+```python
+from pydantic_ai import Agent
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+
+
+def build_responder_agent(deps: AgentDeps) -> Agent[AgentDeps, FinalResponse]:
+    model = create_pydantic_ai_model(deps.settings)
+    return Agent(
+        model,
+        deps_type=AgentDeps,
+        output_type=FinalResponse,
+        system_prompt=RESPONDER_PROMPT,
+    )
+
+
+async def responder_node(state: AgentState, *, deps: AgentDeps) -> dict:
+    if state.get("event_writer"):
+        await state["event_writer"]({"type": "status", "status": "completed"})
+
+    history = []
+    for blob in state.get("messages_json", []):
+        history += ModelMessagesTypeAdapter.validate_json(blob)
+
+    prompt = build_response_input(
+        user_input=state["user_input"],
+        analysis_result=state["analysis_result"],
+        sources=state["sources"],
+        risk_disclaimer=DEFAULT_RISK_DISCLAIMER,
+    )
+
+    agent = build_responder_agent(deps)
+    result = await agent.run(prompt, deps=deps, message_history=history)
+    return {
+        "final_response": result.output,
+        "risk_disclaimer": DEFAULT_RISK_DISCLAIMER,
+        "messages_json": [result.new_messages_json()],
     }
 ```
 
@@ -1248,7 +1505,7 @@ class TextToSQLResult(BaseModel):
 
 async def text_to_sql_tool(state: AgentState, **kwargs) -> TextToSQLResult:
     """自然语言 → SQL 查询"""
-    question = kwargs.get("question", state["messages"][-1].content)
+    question = kwargs.get("question", state["user_input"])
     
     # Step 1: RAG 检索相似 SQL 示例
     embedding_svc = get_embedding_service()
@@ -1263,10 +1520,13 @@ async def text_to_sql_tool(state: AgentState, **kwargs) -> TextToSQLResult:
     )
     
     # Step 3: LLM 生成 SQL
-    generated_sql = await llm.chat([
-        SystemMessage(content=prompt),
-        HumanMessage(content=question),
-    ])
+    llm = create_llm_provider()
+    generated_sql = await llm.chat(
+        [
+            ChatMessage(role="system", content=prompt),
+            ChatMessage(role="user", content=question),
+        ]
+    )
     
     # Step 4: 安全校验 (仅允许 SELECT)
     if not validate_sql_safety(generated_sql):
@@ -1534,6 +1794,42 @@ class RAGService:
             return [dict(row._mapping) for row in result.fetchall()]
 ```
 
+### 6.3 LLM 服务与 PydanticAI Model 工厂 (`services/llm.py`)
+
+LLM 能力在系统内分为两层：
+- **PydanticAI 层（推荐）**：用于 Agent 节点的结构化输出、工具调用协议、以及可选的 token streaming（Intent/Planner/Synthesizer/Responder）。
+- **底层 LLM Provider 层（兼容）**：用于数据管道脚本、或少量非 Agent 场景的简单对话调用（例如 Text-to-SQL 工具内部的 SQL 生成）。
+
+Phase 3 建议把 `services/llm.py` 的职责收敛为两类工厂函数：
+1) `create_llm_provider(settings)`：返回一个最小 chat 能力的 provider（兼容现有实现）。
+2) `create_pydantic_ai_model(settings)`：返回 PydanticAI Agent 可直接使用的 model 配置（model spec 或 model 实例）。
+
+推荐形态（示意）：
+
+```python
+def create_pydantic_ai_model(settings: Settings) -> Any:
+    provider = settings.LLM_PROVIDER.lower().strip()
+    model_name = settings.LLM_MODEL
+    if provider == "openai":
+        return f"openai:{model_name}"
+    if provider == "gemini":
+        return f"gemini:{model_name}"
+    if provider == "zhipu":
+        return f"zhipu:{model_name}"
+    raise ValueError(f"Unsupported LLM_PROVIDER: {settings.LLM_PROVIDER}")
+
+
+def create_default_model_settings(settings: Settings) -> dict[str, Any]:
+    return {
+        "temperature": settings.LLM_TEMPERATURE,
+        "max_tokens": settings.LLM_MAX_TOKENS,
+    }
+```
+
+实现要点：
+- `LLM_BASE_URL` 与 API Key 的注入策略需统一：应用启动时把 Settings 映射到对应 provider SDK / 环境变量（避免在日志中输出密钥）。
+- 重试策略建议保持在应用侧（tenacity 或 PydanticAI 内置重试能力），并记录到 `agent_execution_logs/llm_call_logs`。
+
 ---
 
 ## 7. API 层 (`api/`)
@@ -1543,6 +1839,7 @@ class RAGService:
 ```python
 import json
 import asyncio
+import uuid
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -1562,25 +1859,32 @@ async def chat(request: ChatRequest):
     
     async def event_stream():
         queue: asyncio.Queue = asyncio.Queue()
+        session_id = request.session_id or str(uuid.uuid4())
+        execution_log_id = str(uuid.uuid4())
         
-        async def status_callback(event: dict):
-            """Agent 内部调用此回调推送状态"""
+        async def event_writer(event: dict):
+            event["session_id"] = session_id
+            event["execution_log_id"] = execution_log_id
             await queue.put(event)
         
         # 初始化 Agent 状态
         initial_state: AgentState = {
-            "session_id": request.session_id or str(uuid.uuid4()),
+            "session_id": session_id,
             "user_id": "default",
-            "messages": [HumanMessage(content=request.message)],
+            "execution_log_id": execution_log_id,
+            "user_input": request.message,
+            "messages_json": [],
             "intent": None,
             "entities": None,
             "resolved_stocks": [],
             "plan": None,
             "current_layer": 0,
             "tool_results": {},
-            "status_callback": status_callback,
-            "analysis_result": "",
-            "data_sources": [],
+            "tool_errors": {},
+            "sources": [],
+            "event_writer": event_writer,
+            "analysis_result": None,
+            "final_response": None,
             "risk_disclaimer": "",
         }
         
@@ -1597,7 +1901,17 @@ async def chat(request: ChatRequest):
         
         # Agent 执行完毕，推送最终结果
         final_state = agent_task.result()
-        yield f"data: {json.dumps({'type': 'result', 'content': final_state['analysis_result'], 'sources': final_state['data_sources'], 'disclaimer': final_state['risk_disclaimer']}, ensure_ascii=False)}\n\n"
+        final_response = final_state.get("final_response")
+        payload = (
+            final_response.model_dump()
+            if final_response
+            else {
+                "content": final_state.get("analysis_result"),
+                "sources": final_state.get("sources", []),
+                "disclaimer": final_state.get("risk_disclaimer", ""),
+            }
+        )
+        yield f"data: {json.dumps({'type': 'result', **payload}, ensure_ascii=False)}\n\n"
         yield "data: [DONE]\n\n"
     
     return StreamingResponse(
@@ -2329,10 +2643,12 @@ async def generate_examples_with_llm(
     )
 
     # 3) 调用 LLM
-    response = await llm_client.chat([
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=user_prompt),
-    ])
+    response = await llm_client.chat(
+        [
+            ChatMessage(role="system", content=system_prompt),
+            ChatMessage(role="user", content=user_prompt),
+        ]
+    )
 
     # 4) 解析 JSON + Pydantic 校验
     raw = extract_json_from_response(response.content)

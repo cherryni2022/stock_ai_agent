@@ -334,6 +334,7 @@ from stock_agent.services.rag import RAGService
 | 3.1.1 | 实现 LLM Provider 抽象 + 工厂 (OpenAI / Gemini / Zhipu) | `services/llm.py` | 0.2.1 | `create_llm_provider(settings)` 返回可用客户端 |
 | 3.1.2 | 实现 `structured_output()` — LLM 结构化输出 (JSON Schema) | `services/llm.py` | 3.1.1 | 返回 Pydantic 对象而非字符串 |
 | 3.1.3 | 实现 `llm_call_with_retry()` — tenacity 重试包装 | `services/llm.py` | 3.1.1 | 超时/限流重试 3 次 |
+| 3.1.4 | 实现 `create_pydantic_ai_model()` + 默认 model settings（对齐 PydanticAI `Agent(deps_type=..., output_type=...)`） | `services/llm.py` | 3.1.1 | Agent 节点可直接通过该工厂拿到 model 配置 |
 
 > **参考**: [技术设计 §10.1](./technical_design.md) (重试策略) + [架构 §6](./architecture.md) (LLM Provider)
 
@@ -353,8 +354,8 @@ from stock_agent.services.rag import RAGService
 
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
-| 3.3.1 | 定义 `AgentState` TypedDict | `agent/state.py` | — | 类型检查通过 |
-| 3.3.2 | 定义 Pydantic 模型: `IntentClassification`, `ExtractedEntities`, `StockEntity`, `ExecutionPlan`, `SubTask` | `agent/state.py` | — | `.model_validate()` 测试通过（意图 6 大类与 PRD 一致，含可选 `sub_intent` 字段；代码中说明映射规则） |
+| 3.3.1 | 定义 `AgentState` TypedDict（含 `user_input/messages_json/event_writer/execution_log_id`） | `agent/state.py` | — | 类型检查通过；state 可 JSON 序列化（除 event_writer 外） |
+| 3.3.2 | 定义 Pydantic 模型: `IntentClassification`, `ExtractedEntities`, `StockEntity`, `DecompositionPlan`, `SubTask`, `SynthesisOutput`, `FinalResponse` | `agent/state.py` | — | `.model_validate()` 测试通过（意图 6 大类与 PRD 一致，含 `sub_intent` 字段） |
 
 > **参考**: [技术设计 §3.1](./technical_design.md) (核心数据模型)
 
@@ -362,10 +363,10 @@ from stock_agent.services.rag import RAGService
 
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
-| 3.4.1 | 实现 `intent_node()`: LLM 意图分类 → `IntentClassification` | `agent/nodes/intent.py` | 3.1.2, 3.2.1, 3.3.2 | 6 类意图正确分类 |
+| 3.4.1 | 实现 `intent_node()`: 使用 PydanticAI `Agent(deps_type, output_type)` 输出意图+实体 | `agent/nodes/intent.py` | 3.1.4, 3.2.1, 3.2.2, 3.3.2 | 6 类意图正确分类，且 `sub_intent` 合理 |
 | 3.4.2 | 实现实体提取: 股票名称/代码/时间范围 → `ExtractedEntities` | `agent/nodes/intent.py` | 3.2.2, 3.3.2 | "帮我看看茅台最近的K线" → ticker=600519, period=recent |
 | 3.4.3 | 实现 `StockResolver` — 股票名称模糊解析 (精确→LIKE→向量) | `tools/stock_resolver.py` | 1.1.2 | "中芯国际" → 688981, "腾讯" → 0700.HK |
-| 3.4.4 | 单元测试: 意图分类准确率 / 实体提取完整性 | `tests/test_intent.py` | 3.4.1~3.4.3 | 覆盖 simple_query / technical_analysis / composite 等 |
+| 3.4.4 | 单元测试: 意图分类准确率 / 实体提取完整性 | `tests/test_intent.py` | 3.4.1~3.4.3 | 覆盖 QUOTE / TECHNICAL / COMPOSITE 等 |
 
 > **参考**: [技术设计 §4.2](./technical_design.md) (意图理解节点) + [§5.4](./technical_design.md) (StockResolver)
 
@@ -390,10 +391,10 @@ from stock_agent.services.rag import RAGService
 
 | # | 任务 | 产出文件 | 依赖 | 验证方式 |
 |---|------|---------|------|---------|
-| 3.6.1 | 实现 `planner_node()` — 复杂问题拆解为子任务 DAG | `agent/nodes/planner.py` | 3.1.2, 3.3.2 | 返回 `ExecutionPlan` 含 tasks + execution_order |
+| 3.6.1 | 实现 `planner_node()` — PydanticAI 输出 `DecompositionPlan`（tasks + execution_order） | `agent/nodes/planner.py` | 3.1.4, 3.3.2, 3.2.5 | 返回 `DecompositionPlan` 含 tasks + execution_order |
 | 3.6.2 | 实现 `executor_node()` — 按 DAG 拓扑并行执行工具 | `agent/nodes/executor.py` | 3.5.8 | 同层工具并行, 跨层串行 |
-| 3.6.3 | 实现 `synthesizer_node()` — 多工具结果综合分析 | `agent/nodes/synthesizer.py` | 3.1.2, 3.2.3 | 多数据源整合为结构化分析报告 |
-| 3.6.4 | 实现 `responder_node()` — 格式化最终输出 | `agent/nodes/responder.py` | 3.6.3 | 包含 analysis_result + data_sources + risk_disclaimer |
+| 3.6.3 | 实现 `synthesizer_node()` — PydanticAI 输出 `SynthesisOutput`（可选 token streaming） | `agent/nodes/synthesizer.py` | 3.1.4, 3.2.3 | 多数据源整合为结构化分析输出 |
+| 3.6.4 | 实现 `responder_node()` — PydanticAI 输出 `FinalResponse`（包含 disclaimer） | `agent/nodes/responder.py` | 3.6.3 | 输出 content + sources + disclaimer |
 | 3.6.5 | 实现 `build_agent_graph()` — 组装 StateGraph, 条件路由 | `agent/graph.py` | 3.4.1, 3.6.1~3.6.4 | 图编译成功 |
 | 3.6.6 | 条件路由函数: `should_decompose()`, `needs_more_data()` | `agent/graph.py` | 3.6.5 | 简单查询直达 executor, 复杂查询经 planner |
 | 3.6.7 | 集成测试: 端到端 Agent 调用 | `tests/test_agent.py` | 3.6.5 | 完整跑通 intent → executor → synthesizer → responder |
@@ -422,19 +423,19 @@ stateDiagram-v2
 python -c "
 from stock_agent.agent.graph import agent
 result = await agent.ainvoke({
-    'messages': [HumanMessage(content='茅台今天的收盘价')],
+    'user_input': '茅台今天的收盘价',
     ...
 })
-print(result['analysis_result'])
+print(result['final_response'].content if result.get('final_response') else result.get('analysis_result'))
 "
 
 # 复杂查询 (触发 planner + 多工具)
 python -c "
 result = await agent.ainvoke({
-    'messages': [HumanMessage(content='结合技术面和基本面分析赛力斯')],
+    'user_input': '结合技术面和基本面分析赛力斯',
     ...
 })
-print(result['analysis_result'])
+print(result['final_response'].content if result.get('final_response') else result.get('analysis_result'))
 "
 ```
 
@@ -450,8 +451,8 @@ print(result['analysis_result'])
 |---|------|---------|------|---------|
 | 4.1.1 | FastAPI App 入口 + CORS / 异常处理中间件 | `main.py` | — | `uvicorn stock_agent.main:app` 启动成功 |
 | 4.1.2 | `POST /api/chat` — SSE 流式推送 | `api/chat.py` | 3.6.5 | curl 请求收到 `data: {...}` 事件流 |
-| 4.1.3 | SSE 事件类型实现: `status` (进度) / `result` (结果) / `[DONE]` (结束) | `api/chat.py` | 4.1.2 | 事件类型与前端约定一致（status 使用 analyzing/planning/retrieving/thinking/completed/failed） |
-| 4.1.4 | `status_callback` 注入 Agent: 各节点实时推送状态 | `api/chat.py` + `agent/nodes/*.py` | 4.1.2 | 前端收到 analyzing → retrieving → synthesizing 状态流 |
+| 4.1.3 | SSE 事件类型实现: `status` / `step` / `token` / `result` / `[DONE]` | `api/chat.py` | 4.1.2 | 事件类型与前端约定一致（status 使用 analyzing/planning/retrieving/thinking/completed/failed） |
+| 4.1.4 | `event_writer` 注入 Agent: 各节点实时推送 status/step/token | `api/chat.py` + `agent/nodes/*.py` | 4.1.2 | 前端收到 analyzing → planning → retrieving → thinking → completed 状态流 |
 | 4.1.5 | SSE 事件关联 `execution_log_id` | `api/chat.py` + 日志写入处 | 1.1.7, 4.1.2 | 每条事件包含 execution_log_id，便于全链路追踪 |
 
 > **参考**: [技术设计 §7.1](./technical_design.md) (聊天 API — SSE) + [架构 §5](./architecture.md) (通信协议)
